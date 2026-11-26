@@ -6,6 +6,13 @@ FROM base AS deps
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# Migraciones: drizzle-kit necesita devDependencies, por eso es un target aparte
+FROM deps AS migrator
+COPY drizzle.config.ts ./
+COPY drizzle ./drizzle
+COPY src/db/schema.ts ./src/db/schema.ts
+CMD ["npx", "drizzle-kit", "migrate"]
+
 FROM deps AS builder
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
