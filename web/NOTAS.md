@@ -54,3 +54,17 @@ Código: `feature/editor/VariableNode.ts`, `feature/editor/VariablePanel.tsx`,
 
 🔍 Pruébalo: crea "Dirección del cliente" (mira la clave sin tilde), insértala, bórrala con
 Retroceso (desaparece entera) y fíjate en "en uso"/"sin usar" y en el JSON de la derecha.
+
+### Paso 3b · Panel de variables escalable (100+ variables) ✅
+- **Caja scrolleable**: `max-height: 45vh` + `overflow-y: auto` en `.variable-list`. Con 5 o
+  500 variables el panel mide lo mismo; lo que sobra se scrollea dentro. (Probado con 105:
+  caja de 354 px, contenido de 4525 px, la página no crece.)
+- Filas compactas: clic en la fila = insertar; texto largo cortado con `…`
+  (`text-overflow: ellipsis` + `min-width: 0` en el hijo flex, si no, el texto ensancha la fila).
+- `flex-shrink: 0` en las filas: en una columna flex con altura limitada, sin esto las filas
+  se aplastan en vez de desbordar.
+- Panel `position: sticky`: se queda a la vista al hacer scroll de la página.
+- **Buscador** = estado local `query` + lista filtrada **derivada** (no se guarda):
+  `visibleVariables = variables.filter(...)`. Contador "3/105 en uso", también derivado.
+- Bug encontrado: `keyFromLabel` cortaba a 50 **después** de quitar `_` finales -> la clave
+  podía terminar en `_`. Orden correcto: cortar y luego limpiar.

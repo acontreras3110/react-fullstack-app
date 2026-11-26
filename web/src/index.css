@@ -123,6 +123,8 @@ main {
   font-size: 0.8rem;
   white-space: pre-wrap;
   word-break: break-word;
+  max-height: 75vh; /* también scrolleable: con 100 variables el JSON es largo */
+  overflow-y: auto;
 }
 
 .muted {
@@ -145,33 +147,104 @@ main {
 }
 
 /* ---------- Panel de variables ---------- */
+/* El panel se queda fijo al hacer scroll de la página (útil con documentos largos). */
+.variable-panel {
+  position: sticky;
+  top: 8px;
+}
+
 .variable-panel h2 {
   font-size: 1rem;
 }
 
+.variable-search {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+  padding: 4px 6px;
+}
+
+/* 🔑 Caja scrolleable: altura máxima + overflow auto. Con muchas variables NO crece
+   la página: aparece una barra de scroll dentro de la caja. */
 .variable-list {
   list-style: none;
-  margin: 0 0 16px;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.variable-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px;
+  margin: 0 0 12px;
+  padding: 4px;
+  max-height: 45vh;
+  overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 0.85rem;
-}
-
-.variable-actions {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.variable-list:empty {
+  display: none;
+}
+
+/* Fila compacta: [ etiqueta + clave (clic = insertar) ][ ✕ ] */
+.variable-list li {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  flex-shrink: 0; /* en una columna flex con scroll, que las filas no se aplasten */
+}
+
+.variable-insert {
+  flex: 1;
+  min-width: 0; /* permite que el texto largo se corte con "…" en vez de ensanchar */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--panel);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.variable-insert:hover {
+  border-color: var(--accent);
+}
+
+.variable-list li.used .variable-insert {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.variable-label,
+.variable-key {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variable-key {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.variable-remove {
+  width: 28px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.variable-remove:hover:not(:disabled) {
+  border-color: #e5484d;
+  color: #e5484d;
+}
+
+.variable-remove:disabled {
+  opacity: 0.25;
+  cursor: default;
 }
 
 .variable-form {

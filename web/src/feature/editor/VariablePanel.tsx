@@ -26,6 +26,15 @@ type VariablePanelProps = {
 export function VariablePanel({ variables, usedKeys, onAdd, onRemove, onInsert }: VariablePanelProps) {
   const [label, setLabel] = useState('')
   const [type, setType] = useState<VariableType>('text')
+  // Texto del buscador: estado LOCAL (solo afecta a lo que muestra este panel).
+  const [query, setQuery] = useState('')
+
+  // ✅ ESTADO DERIVADO: la lista filtrada NO se guarda, se calcula en cada render.
+  // ❌ useState(filtradas) + actualizarla al cambiar query O variables = bugs seguros.
+  const q = query.trim().toLowerCase()
+  const visibleVariables =
+    q === '' ? variables : variables.filter((v) => v.label.toLowerCase().includes(q) || v.key.includes(q))
+  const usedCount = variables.filter((v) => usedKeys.includes(v.key)).length
 
   // ✅ ESTADO DERIVADO: la clave sale de la etiqueta en cada render.
   // ❌ Guardarla en otro useState obligaría a sincronizarlos a mano (y se desincronizan).
@@ -50,36 +59,58 @@ export function VariablePanel({ variables, usedKeys, onAdd, onRemove, onInsert }
 
   return (
     <aside className="variable-panel">
-      <h2>Variables</h2>
+      <h2>
+        Variables{' '}
+        <span className="muted">
+          ({usedCount}/{variables.length} en uso)
+        </span>
+      </h2>
+
+      <input
+        type="search"
+        className="variable-search"
+        placeholder="Buscar por etiqueta o clave…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
 
       {variables.length === 0 && <p className="muted">Aún no hay variables.</p>}
+      {variables.length > 0 && visibleVariables.length === 0 && (
+        <p className="muted">Ninguna coincide con “{query}”.</p>
+      )}
 
+      {/* Caja con ALTURA MÁXIMA + overflow:auto (ver .variable-list en index.css):
+          con 5 o con 500 variables el panel ocupa lo mismo; lo que sobra se scrollea. */}
       <ul className="variable-list">
-        {variables.map((v) => {
+        {visibleVariables.map((v) => {
           const used = usedKeys.includes(v.key)
           return (
-            <li key={v.key}>
-              <div>
-                <strong>{v.label}</strong>{' '}
-                <span className="muted">({VARIABLE_TYPE_LABELS[v.type]})</span>
-                <br />
-                <code>{`{{${v.key}}}`}</code> {used ? '✅ en uso' : <span className="muted">sin usar</span>}
-              </div>
-              <div className="variable-actions">
-                <button type="button" onClick={() => onInsert(v.key)}>
-                  Insertar
-                </button>
+            <li key={v.key} className={used ? 'used' : undefined}>
+              {/* Clic en la fila = insertar (botón grande y fácil de acertar). */}
+              <button
+                type="button"
+                className="variable-insert"
+                onClick={() => onInsert(v.key)}
+                title={`Insertar {{${v.key}}} · ${VARIABLE_TYPE_LABELS[v.type]}${used ? ' · en uso' : ''}`}
+              >
+                <span className="variable-label">
+                  {used && '✅ '}
+                  {v.label}
+                </span>
+                <code className="variable-key">{`{{${v.key}}}`}</code>
+              </button>
                 {/* No dejamos borrar una variable en uso: el documento quedaría con un
                     comodín sin definir (la API respondería 422). */}
                 <button
                   type="button"
+                  className="variable-remove"
                   onClick={() => onRemove(v.key)}
                   disabled={used}
                   title={used ? 'Quítala primero del documento' : 'Eliminar variable'}
+                  aria-label={`Eliminar ${v.label}`}
                 >
                   ✕
                 </button>
-              </div>
             </li>
           )
         })}

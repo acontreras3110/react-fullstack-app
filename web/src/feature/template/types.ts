@@ -28,6 +28,6 @@ export function keyFromLabel(label: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_') //     espacios y símbolos -> "_"
     .replace(/^[^a-z]+/, '') //         debe empezar por letra
-    .replace(/_+$/, '')
-    .slice(0, 50)
+    .slice(0, 50) //                    máx. 50 (como la API)...
+    .replace(/_+$/, '') //              ...y DESPUÉS quitar "_" finales (el corte puede dejar uno)
 }
