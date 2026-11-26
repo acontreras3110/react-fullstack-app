@@ -8,6 +8,10 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
   3. API que reemplaza los comodines de forma segura y genera el PDF con Playwright (Base64).
 
 # Decisiones de diseño
+- Dos modos de plantilla: **HTML (diseñado)** = HTML + CSS + Handlebars tal cual, editor de código (CodeMirror)
+  y visor en iframe tamaño carta; **Visual (simple)** = TipTap. Plantillas reales del negocio usan el modo HTML
+  (`{{var}}`, `{{#ifEquals a 1}}`, `{{#each lista}}{{this.campo}}{{/each}}`). Variables detectadas con el AST de Handlebars.
+- Claves de variable tal cual (`tipo-poliza`): letras, números, `_` y `-`. Nunca renombrar.
 - Comodín = nodo atómico de TipTap, serializado como `<span data-variable="key">{{key}}</span>`.
 - Variable = `{ key (snake_case), label, required }`. Sin tipo: el valor se inserta tal cual (escapado).
 - Comodines desde texto `{{clave}}`: importar HTML, pegar (transformPastedHTML) o escribir (input rule).
@@ -20,7 +24,8 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
 - [x] Paso 1: API CRUD de plantillas (Drizzle + Postgres + tests PGlite)
 - [x] Paso 2: editor TipTap básico + toolbar
 - [x] Paso 3: nodo Variable + panel para insertar comodines
-- [ ] Paso 4: guardar/cargar plantillas (useQuery/useMutation, cambios sin guardar)
+- [x] Paso 3d: modo HTML con visor fiel (iframe) + Handlebars
+- [ ] Paso 4 (pendiente en API: guardar modo, permitir <style>/class/style en modo HTML, data: imágenes): guardar/cargar plantillas (useQuery/useMutation, cambios sin guardar)
 - [ ] Paso 5: formulario dinámico (React Hook Form + Zod generado en runtime)
 - [ ] Paso 6: render seguro + Playwright -> PDF Base64 + vista previa
 - [ ] Paso 7: extras (preview en vivo, cancelación, descarga)

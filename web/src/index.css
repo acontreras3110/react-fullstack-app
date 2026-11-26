@@ -38,7 +38,7 @@ main {
 
 .workspace {
   display: grid;
-  grid-template-columns: 260px minmax(0, 3fr) minmax(0, 2fr);
+  grid-template-columns: 260px minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -377,4 +377,116 @@ main {
 /* Celdas seleccionadas (arrastrando sobre varias). */
 .editor-content .tiptap .selectedCell {
   background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* ---------- Modos ---------- */
+main.app-html {
+  max-width: none; /* el modo HTML necesita todo el ancho: código + hoja */
+}
+
+.app-header {
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 4px;
+  margin-right: auto;
+}
+
+.mode-tabs button {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.mode-tabs button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  border-color: var(--accent);
+}
+
+.payload {
+  margin-top: 12px;
+}
+
+.payload summary {
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+/* ---------- Modo HTML ---------- */
+.html-workspace {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .html-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+.html-workspace h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.code-section .section-header {
+  margin-bottom: 8px;
+}
+
+.code-section .cm-editor {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.code-error {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+}
+
+/* ---------- Visor (hoja de papel) ---------- */
+.preview-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.preview-toolbar label {
+  font-weight: normal;
+}
+
+/* La "mesa": gris, con scroll en ambas direcciones (la hoja puede ser más ancha). */
+.preview-desk {
+  height: calc(100vh - 170px);
+  overflow: auto;
+  padding: 16px;
+  background: #5c5f66;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* La hoja: ancho carta (8.5in), fondo blanco y sombra de papel. */
+.preview-sheet {
+  width: 8.5in;
+  margin: 0 auto;
+  background: #fff;
+  box-shadow: 0 4px 16px #0006;
+}
+
+.preview-sheet iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: #fff;
 }

@@ -61,7 +61,7 @@ export const VariableNode = Node.create({
   addInputRules() {
     return [
       nodeInputRule({
-        find: /\{\{([a-z][a-z0-9_]{0,49})\}\}$/,
+        find: /\{\{([A-Za-z][A-Za-z0-9_-]{0,49})\}\}$/,
         type: this.type,
         getAttributes: (match) => ({ key: match[1] }),
       }),

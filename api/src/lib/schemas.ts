@@ -1,7 +1,10 @@
 import { z } from "zod";
 
-// snake_case: empieza por letra; así `{{key}}` es inequívoco y seguro en un atributo HTML.
-export const VariableKey = z.string().regex(/^[a-z][a-z0-9_]{0,49}$/, "Clave inválida (snake_case, máx. 50)");
+// Empieza por letra; letras, números, "_" y "-" (válido en Handlebars y seguro en un
+// atributo HTML). Se aceptan guiones/mayúsculas para coincidir con los datos de origen.
+export const VariableKey = z
+  .string()
+  .regex(/^[A-Za-z][A-Za-z0-9_-]{0,49}$/, "Clave inválida (letras, números, _ o -; máx. 50)");
 
 export const TemplateVariable = z.object({
   key: VariableKey,

@@ -5,7 +5,7 @@
 //   ❌ Regex sobre el string también tocaría atributos: <a title="{{x}}"> se rompería.
 //   ✅ DOMParser construye el árbol; recorremos SOLO los nodos de texto.
 //   (DOMParser no ejecuta scripts ni carga imágenes: es seguro para analizar.)
-import { keyFromLabel } from '../template/types'
+import { keyFromLabel, VARIABLE_KEY_REGEX } from '../template/types'
 
 // {{ clave }} con espacios opcionales; la clave admite letras, números, _ - .
 const PLACEHOLDER = /\{\{\s*([\p{L}\w.-]+)\s*\}\}/gu
@@ -33,7 +33,9 @@ export function convertPlaceholders(html: string): { html: string; found: FoundP
     let last = 0
     for (const match of text.matchAll(PLACEHOLDER)) {
       const raw = match[1]!
-      const key = keyFromLabel(raw)
+      // Clave válida -> se conserva TAL CUAL ("tipo-poliza" sigue siendo "tipo-poliza").
+      // Solo se normaliza si no es válida ("{{Nombre Cliente}}" -> "nombre_cliente").
+      const key = VARIABLE_KEY_REGEX.test(raw) ? raw : keyFromLabel(raw)
       if (!key) continue // "{{123}}": no sirve como clave, se queda como texto
       fragment.append(text.slice(last, match.index))
       const span = doc.createElement('span')

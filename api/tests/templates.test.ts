@@ -73,7 +73,14 @@ describe("CRUD /api/templates", () => {
 
     const v = { key: "a", label: "A", required: true };
     expect((await list.POST(req("POST", { name: "X", html: "", variables: [v, v] }))).status).toBe(422);
-    expect((await list.POST(req("POST", { name: "X", html: "", variables: [{ ...v, key: "Mal-Key" }] }))).status).toBe(422);
+    for (const bad of ["1empieza-por-numero", "con espacio", "con{{llave}}", "x".repeat(51)]) {
+      expect((await list.POST(req("POST", { name: "X", html: "", variables: [{ ...v, key: bad }] }))).status).toBe(422);
+    }
+    // Guiones y mayúsculas SÍ (deben coincidir con los datos de origen: "tipo-poliza").
+    const ok = await list.POST(
+      req("POST", { name: "X", html: `<p>${chip("tipo-poliza")}</p>`, variables: [{ ...v, key: "tipo-poliza" }] }),
+    );
+    expect(ok.status).toBe(201);
     expect((await list.POST(req("POST", { name: "  ", html: "" }))).status).toBe(422);
   });
 

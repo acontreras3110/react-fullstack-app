@@ -12,9 +12,13 @@ export type ImportMode = 'replace' | 'insert'
 
 type ImportHtmlDialogProps = {
   onImport: (html: string, mode: ImportMode) => void
+  hint?: string // texto explicativo distinto según el modo (prop opcional)
 }
 
-export function ImportHtmlDialog({ onImport }: ImportHtmlDialogProps) {
+const DEFAULT_HINT =
+  'Los textos {{clave}} se convierten en comodines. Lo que el editor no soporta (scripts, imágenes, enlaces, estilos) se descarta.'
+
+export function ImportHtmlDialog({ onImport, hint = DEFAULT_HINT }: ImportHtmlDialogProps) {
   // Referencia al <dialog> del DOM. Cambiar una ref NO provoca re-render.
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [text, setText] = useState('')
@@ -56,10 +60,7 @@ export function ImportHtmlDialog({ onImport }: ImportHtmlDialogProps) {
 
       <dialog ref={dialogRef} className="import-dialog">
         <h2>Importar HTML</h2>
-        <p className="muted">
-          Pega el HTML o elige un archivo. Los textos <code>{'{{clave}}'}</code> se convierten en
-          comodines. Lo que el editor no soporta (scripts, imágenes, enlaces, estilos) se descarta.
-        </p>
+        <p className="muted">Pega el HTML o elige un archivo. {hint}</p>
 
         <input type="file" accept=".html,.htm,text/html" onChange={handleFile} />
         {fileError && <p className="error">{fileError}</p>}

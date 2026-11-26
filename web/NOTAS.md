@@ -92,3 +92,36 @@ Código: `feature/editor/placeholders.ts`, `ImportHtmlDialog.tsx`, `VariableNode
   fila/columna solo visibles **dentro** de una tabla (renderizado condicional con `inTable`).
 - Lo que el editor no conoce (script, img, enlaces, estilos) se descarta al importar; la API
   vuelve a sanear al guardar (defensa en dos capas).
+
+## Paso 3d · Modo HTML: documentos diseñados con visor fiel ✅
+Código: `src/feature/html-template/` (`analyze.ts`, `preview.ts`, `DocumentPreview.tsx`,
+`HtmlVariablePanel.tsx`, `HtmlTemplateWorkspace.tsx`), `App.tsx` (selector de modo).
+
+- **Problema**: TipTap es un editor de texto enriquecido; con un HTML maquetado (CSS de 1700
+  líneas, grid, `@page`, clases, Handlebars) descarta estilos/divs/clases -> no parece documento.
+- **Solución**: dos modos. *Visual* (TipTap) para documentos simples; *HTML* para diseñados:
+  el HTML se conserva **tal cual** y se edita como código.
+- **Visor = `<iframe srcDoc>`**: documento aparte con su propio CSS (no choca con el de la app),
+  igual que lo imprimirá Playwright. `sandbox="allow-same-origin"` sin `allow-scripts`: los
+  `<script>` no corren; same-origin solo para leer la altura (`onLoad`). Hoja de 8.5in sobre una
+  "mesa" gris; zoom con CSS `zoom`. `[no-print-layout]` se oculta (como al imprimir).
+- **Variables con el AST de Handlebars** (`Handlebars.parse`): distingue variable
+  (`{{asegurado}}`), helper + parámetros (`{{#ifEquals medio-pago 1}}`), lista
+  (`{{#each coberturas}}` + `{{this.codigo}}` = campos). ❌ Regex no puede distinguirlos.
+- **Vista previa**: `Handlebars.create()` (instancia aislada) + datos "marcador" (cada variable
+  -> `<mark>` con su nombre vía `SafeString`); listas con 1 fila de ejemplo; `ifEquals`
+  recuadrado con su condición.
+- **Claves tal cual**: `tipo-poliza` ya NO se renombra (regex admite `-` y mayúsculas, también en
+  la API). Renombrar rompería el reemplazo con los datos reales.
+- **Estado**: solo `html` y `requiredByKey`. Variables y vista previa son **derivadas**.
+  - `useDeferredValue(html)`: el editor responde a cada tecla; análisis + iframe (caros) usan el
+    valor diferido -> escribir no se traba.
+  - `useMemo`: recalcular solo si cambia el HTML.
+  - Si el HTML está a medio escribir (`{{#if}}` sin cerrar) se muestran las últimas variables y
+    vista previa válidas (setState condicional durante el render).
+- **CodeMirror controlado** (`value` + `onChange`) sí funciona: la librería aplica solo la
+  diferencia. Insertar en el cursor: `view.dispatch(view.state.replaceSelection(...))`.
+- "Datos a guardar" del modo visual ahora es un `<details>` plegable (sin estado de React).
+
+Probado con `condiciones-endoso.html` (108 KB): 40 variables + lista `coberturas` (4 campos),
+59 marcadores, 2 bloques condicionales, se ve como el documento original.

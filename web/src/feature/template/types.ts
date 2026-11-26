@@ -11,8 +11,10 @@ export type TemplateVariable = {
   required: boolean
 }
 
-// Igual que la regex de la API: snake_case, empieza por letra, máx. 50.
-export const VARIABLE_KEY_REGEX = /^[a-z][a-z0-9_]{0,49}$/
+// Igual que la regex de la API: empieza por letra; letras, números, "_" y "-"; máx. 50.
+// Se aceptan guiones y mayúsculas porque las claves deben coincidir EXACTAMENTE con los
+// datos que llegan (p. ej. "tipo-poliza"): renombrarlas rompería el reemplazo.
+export const VARIABLE_KEY_REGEX = /^[A-Za-z][A-Za-z0-9_-]{0,49}$/
 
 /**
  * "Nombre del cliente" -> "nombre_del_cliente"; "Año 2024" -> "ano_2024".
