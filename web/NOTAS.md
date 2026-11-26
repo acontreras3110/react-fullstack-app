@@ -26,3 +26,31 @@ Código: `src/feature/editor/` (`extensions.ts`, `TemplateEditor.tsx`, `Toolbar.
 🔍 Pruébalo: escribe y mira el `<pre>` cambiar a cada tecla. Pon el cursor dentro de un texto en
 negrita: el botón **B** se ilumina solo (eso es `useEditorState`). React DevTools ->
 Components -> `App` -> hook `State`: es la copia del HTML.
+
+## Paso 3 · Comodines como nodo propio + panel de variables ✅
+Código: `feature/editor/VariableNode.ts`, `feature/editor/VariablePanel.tsx`,
+`feature/template/types.ts`, `App.tsx`.
+
+- **Nodo personalizado** (`Node.create`): `group: 'inline'`, `atom: true` (indivisible: se
+  selecciona y borra entero, el cursor no entra). ❌ Texto `{{x}}` se puede romper a medias;
+  ✅ un nodo no, y listar las variables usadas = recorrer el documento.
+- Traducción en ambos sentidos:
+  - `parseHTML`: `<span data-variable>` -> nodo (al cargar una plantilla, vuelven a ser chips).
+  - `renderHTML`: nodo -> `<span data-variable="key">{{key}}</span>` (lo que espera la API).
+  - `addAttributes`: el dato `key` <-> atributo `data-variable`.
+- **Comando propio** `insertVariable(key)` + `declare module '@tiptap/core'` (module
+  augmentation) para que TS lo conozca en `editor.chain()...`.
+- **Lifting de la instancia**: `useEditor` pasó de `TemplateEditor` a `App`, porque el panel
+  (insertar) y la vista (variables usadas) necesitan el editor. `TemplateEditor` quedó
+  presentacional (recibe `editor` por props).
+- **¿Dónde vive cada estado?**
+  - `variables` (definiciones) -> App (las usan panel y vista).
+  - `usedKeys` -> **derivado** del documento con `useEditorState` + `doc.descendants`.
+  - etiqueta/tipo del formulario -> **local** en `VariablePanel`.
+- **Estado derivado** en el panel: `key = keyFromLabel(label)` y el `error` se calculan en cada
+  render. ❌ `useState` para la clave = dos estados que sincronizar a mano.
+- **Inmutabilidad**: añadir `[...prev, v]`, quitar `prev.filter(...)`.
+- Regla de negocio en la UI: no se puede borrar una variable **en uso** (la API daría 422).
+
+🔍 Pruébalo: crea "Dirección del cliente" (mira la clave sin tilde), insértala, bórrala con
+Retroceso (desaparece entera) y fíjate en "en uso"/"sin usar" y en el JSON de la derecha.

@@ -5,6 +5,7 @@
 // si el editor produce algo que la API no permite, se perdería al guardar.
 import StarterKit from '@tiptap/starter-kit'
 import TextAlign from '@tiptap/extension-text-align'
+import { VariableNode } from './VariableNode'
 
 export const editorExtensions = [
   StarterKit.configure({
@@ -15,4 +16,6 @@ export const editorExtensions = [
   }),
   // text-align: la API solo deja pasar este estilo.
   TextAlign.configure({ types: ['heading', 'paragraph'] }),
+  // Nuestro nodo de comodín (paso 3).
+  VariableNode,
 ]

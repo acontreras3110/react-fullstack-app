@@ -38,15 +38,16 @@ main {
 
 .workspace {
   display: grid;
-  grid-template-columns: 3fr 2fr;
+  grid-template-columns: 260px minmax(0, 3fr) minmax(0, 2fr);
   gap: 16px;
+  align-items: start;
 }
 
 .workspace h2 {
   font-size: 1rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .workspace {
     grid-template-columns: 1fr;
   }
@@ -122,4 +123,78 @@ main {
   font-size: 0.8rem;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.muted {
+  opacity: 0.65;
+}
+
+/* ---------- Comodín (nodo variable) ---------- */
+.editor-content .tiptap span[data-variable] {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border: 1px solid var(--accent);
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+/* Nodo seleccionado (clic sobre el chip): TipTap añade esta clase. */
+.editor-content .tiptap span[data-variable].ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+}
+
+/* ---------- Panel de variables ---------- */
+.variable-panel h2 {
+  font-size: 1rem;
+}
+
+.variable-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.variable-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.variable-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.variable-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--panel);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.variable-form h3 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.variable-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.variable-form p {
+  margin: 0;
 }
