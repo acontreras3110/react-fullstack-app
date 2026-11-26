@@ -1,10 +1,10 @@
-// App: cabecera + editor de plantillas.
+// App: cabecera + editor de plantillas (cargar/guardar en la API desde el paso 4).
 //
 // Un solo editor para todo: el HTML de la plantilla se edita SIN código (vista Diseño,
 // directamente sobre el documento) o CON código (vista Código), y ambos se sincronizan.
 // (El editor TipTap de los pasos 2 y 3 se retiró: no respetaba documentos maquetados.
 //  Sigue en el historial de git como referencia.)
-import { HtmlTemplateWorkspace } from './feature/html-template/HtmlTemplateWorkspace'
+import { TemplateEditorPage } from './feature/templates/TemplateEditorPage'
 import { ApiStatus } from './feature/health/ApiStatus'
 
 function App() {
@@ -14,7 +14,7 @@ function App() {
         <h1>Plantillas</h1>
         <ApiStatus />
       </header>
-      <HtmlTemplateWorkspace />
+      <TemplateEditorPage />
     </main>
   )
 }

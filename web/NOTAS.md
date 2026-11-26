@@ -163,3 +163,44 @@ Código: `feature/html-template/` (`designDoc.ts`, `DesignEditor.tsx`, `HtmlTemp
 Probado con `condiciones-endoso.html`: editar texto, negrita, insertar comodín y lista en el
 cursor, sincronización código <-> diseño; los 8 bloques condicionales y el `{{#each}}` dentro de
 `<tbody>` sobreviven a la ida y vuelta.
+
+## Paso 4 · Guardar y cargar plantillas (API real) ✅
+Código: `feature/templates/` (`api.ts`, `queries.ts`, `TemplateBar.tsx`, `TemplateEditorPage.tsx`)
+y `HtmlTemplateWorkspace.tsx`. API: `api/src/lib/template.ts`.
+
+**API: saneado quirúrgico** (sanitize-html retirado)
+- ❌ Allowlist: reescribe el documento entero (pierde `<style>`, doctype, escapa `{{> x}}`).
+- ✅ `htmlparser2` recorre el HTML, anota solo los RANGOS peligrosos (`script`, `iframe`, `link`,
+  `meta http-equiv`, `on*`, `javascript:`) y los corta. El resto queda **byte a byte**.
+  Plantillas reales: solo se quitan ~1,5 KB (el `<script type="module">` y el `<link rel=icon>`).
+- Variables con el **AST de Handlebars** también en el servidor; `{{#if}}` sin cerrar -> 422.
+- Dev local: API en `:3010`, Postgres en `:55432` (3000/5432 los usa todo-api-ts).
+  `api/.env` y `web/.env.local` (`VITE_API_URL`), ambos fuera de git.
+
+**Tipos generados**: `npm run gen:api` -> `src/api/schema.d.ts`;
+`type Template = components['schemas']['TemplateOut']`. Si la API cambia, TS avisa.
+
+**TanStack Query** (`queries.ts`)
+- `templateKeys`: fábrica de query keys -> invalidar `['templates']` cubre lista y detalles.
+- `useTemplate(id)`: siempre se llama (reglas de hooks); `enabled: id !== null`.
+  `staleTime: Infinity` + sin refetch al enfocar: no pisar lo que estás editando.
+- `useSaveTemplate`: un solo guardar (POST si no hay id, PUT si hay). `onSuccess`:
+  `setQueryData(detalle)` (ya tenemos la respuesta) + `invalidateQueries(lista)`.
+
+**Estado y props**
+- `key` para reiniciar: abrir otra plantilla = `key` nueva -> React desmonta y monta el workspace;
+  todo su estado local arranca de `initial`. ❌ `useEffect(() => setHtml(initial.html))`.
+- **Sin guardar = DERIVADO**: `saved` (última versión confirmada por la API) vs borrador
+  (nombre, html, obligatorias). No existe `setIsDirty`.
+- Guardar analiza el html **actual** (no el diferido, que puede ir una tecla atrás).
+- Respuesta del servidor (quitó un `<script>`): `setHtml(now => now === enviado ? servidor : now)`.
+  **Updater funcional**: lee el html de AHORA, no el del closure; si seguiste escribiendo
+  mientras viajaba la petición, no se pisa.
+- `beforeunload` con `useEffect` + cleanup, solo mientras hay cambios.
+- Cambiar de plantilla con cambios -> `confirm` (en el workspace, que sabe si hay cambios;
+  el `<select>` solo avisa con `onOpen`).
+
+Probado: crear "Carta de prueba" -> queda abierta con id; subir `condiciones-endoso.html`
+(40 variables + lista) y abrirla; marcar `seguro` como opcional -> "● Sin guardar" -> Guardar ->
+persistido; `<script>` escrito en Código -> el servidor lo quita, el editor muestra lo guardado y
+queda "✓ Guardado"; Borrar -> vuelve a "Nueva" sin GET 404.

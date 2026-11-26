@@ -11,8 +11,8 @@ const ts = (name: string) => timestamp(name, { withTimezone: true, mode: "date" 
 export const templates = pgTable("templates", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   name: varchar({ length: 150 }).notNull(),
-  // HTML del editor (TipTap), YA saneado. Los comodines van como
-  // <span data-variable="key">{{key}}</span>
+  // Documento HTML completo (CSS + Handlebars), YA saneado (sin script/on*/link).
+  // Los comodines son expresiones Handlebars: {{clave}}, {{#each lista}}...
   html: text().notNull(),
   // Solo las variables que de verdad aparecen en `html`, en orden de definición.
   variables: jsonb().$type<TemplateVariable[]>().notNull().default([]),

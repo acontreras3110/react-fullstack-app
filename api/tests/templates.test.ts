@@ -11,11 +11,11 @@ const req = (method: string, body?: unknown) =>
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 const ctx = (id: number | string) => ({ params: Promise.resolve({ id: String(id) }) });
-const chip = (key: string) => `<span data-variable="${key}">{{${key}}}</span>`;
+const hb = (key: string) => `{{${key}}}`;
 
 const contrato = {
   name: "Contrato",
-  html: `<h1>Contrato</h1><p>Cliente: ${chip("cliente_nombre")}, fecha ${chip("fecha")}. Otra vez ${chip("cliente_nombre")}</p>`,
+  html: `<h1>Contrato</h1><p>Cliente: ${hb("cliente_nombre")}, fecha ${hb("fecha")}. Otra vez ${hb("cliente_nombre")}</p>`,
   variables: [
     { key: "cliente_nombre", label: "Nombre del cliente", required: true },
     { key: "fecha", label: "Fecha", required: false },
@@ -23,17 +23,33 @@ const contrato = {
   ],
 };
 
-describe("saneado y extracción", () => {
-  it("elimina script, on*, enlaces y estilos no permitidos; conserva data-variable y text-align", () => {
-    const out = sanitizeTemplateHtml(
-      `<p style="text-align:center;color:red" onclick="x()">Hola<script>alert(1)</script>` +
-        `<a href="http://evil">link</a><img src=x onerror=alert(1)>${chip("a")}</p>`,
-    );
-    expect(out).toBe(`<p style="text-align:center">Holalink${chip("a")}</p>`);
+describe("saneado quirúrgico", () => {
+  it("conserva documento completo byte a byte: doctype, <style>, class, data:, comentarios, Handlebars", () => {
+    const doc =
+      `<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"/><style>.a{color:red}</style></head>` +
+      `<body><div class="page" style="width:8.5in" data-dynamic><!-- nota -->` +
+      `<img src="data:image/png;base64,iVBOR=" alt=x>` +
+      `<table><tbody>{{#each coberturas}}<tr><td>{{this.codigo}}</td></tr>{{/each}}</tbody></table>` +
+      `{{#ifEquals medio-pago "1"}}<b>PAT</b>{{/ifEquals}} {{> parcial}}</div></body></html>`;
+    expect(sanitizeTemplateHtml(doc)).toBe(doc);
   });
 
-  it("extrae claves únicas en orden de aparición", () => {
-    expect(extractVariableKeys(contrato.html)).toEqual(["cliente_nombre", "fecha"]);
+  it("quita script, link, iframe, meta http-equiv, on*, javascript: (y solo eso)", () => {
+    const out = sanitizeTemplateHtml(
+      `<head><link rel="icon" href="/favicon.svg"/><meta http-equiv="refresh" content="0;url=x">` +
+        `<script type="module">const a = "<p>";</script></head>` +
+        `<p class="x" onclick="x()">Hola</p><img src=x onerror=alert(1) />` +
+        `<a href="  java	script:alert(1)">link</a><iframe src="https://evil"><p>dentro</p></iframe>{{a}}`,
+    );
+    expect(out).toBe(`<head></head><p class="x">Hola</p><img src="x" /><a>link</a>{{a}}`);
+  });
+
+  it("extrae claves con el AST de Handlebars (no regex)", () => {
+    const html =
+      `{{cliente}} {{#if monto}}{{monto}}{{/if}} {{#ifEquals medio-pago 1}}x{{/ifEquals}}` +
+      `{{#each coberturas}}{{this.codigo}} {{descripcion}} {{@index}}{{/each}} {{cliente}}`;
+    expect(extractVariableKeys(html)).toEqual(["cliente", "monto", "medio-pago", "coberturas"]);
   });
 });
 
@@ -50,10 +66,10 @@ describe("CRUD /api/templates", () => {
     expect(all.items[0]).not.toHaveProperty("html");
 
     const one = await byId.GET(req("GET"), ctx(t.id));
-    expect((await one.json()).html).toContain('data-variable="fecha"');
+    expect((await one.json()).html).toBe(contrato.html); // se guarda tal cual
 
     const put = await byId.PUT(
-      req("PUT", { name: "Contrato v2", html: `<p>${chip("fecha")}</p>`, variables: contrato.variables }),
+      req("PUT", { name: "Contrato v2", html: `<p>${hb("fecha")}</p>`, variables: contrato.variables }),
       ctx(t.id),
     );
     expect(put.status).toBe(200);
@@ -67,7 +83,7 @@ describe("CRUD /api/templates", () => {
   });
 
   it("422: variable usada sin definir, duplicada, clave inválida o nombre vacío", async () => {
-    const missing = await list.POST(req("POST", { name: "X", html: `<p>${chip("sin_def")}</p>`, variables: [] }));
+    const missing = await list.POST(req("POST", { name: "X", html: `<p>${hb("sin_def")}</p>`, variables: [] }));
     expect(missing.status).toBe(422);
     expect((await missing.json()).detail).toContain("sin_def");
 
@@ -78,7 +94,7 @@ describe("CRUD /api/templates", () => {
     }
     // Guiones y mayúsculas SÍ (deben coincidir con los datos de origen: "tipo-poliza").
     const ok = await list.POST(
-      req("POST", { name: "X", html: `<p>${chip("tipo-poliza")}</p>`, variables: [{ ...v, key: "tipo-poliza" }] }),
+      req("POST", { name: "X", html: `<p>${hb("tipo-poliza")}</p>`, variables: [{ ...v, key: "tipo-poliza" }] }),
     );
     expect(ok.status).toBe(201);
     expect((await list.POST(req("POST", { name: "  ", html: "" }))).status).toBe(422);
@@ -94,20 +110,16 @@ describe("CRUD /api/templates", () => {
 describe("required", () => {
   it("por defecto es obligatoria si no se indica", async () => {
     const r = await list.POST(
-      req("POST", { name: "R", html: `<p>${chip("x")}</p>`, variables: [{ key: "x", label: "X" }] }),
+      req("POST", { name: "R", html: `<p>${hb("x")}</p>`, variables: [{ key: "x", label: "X" }] }),
     );
     expect((await r.json()).variables).toEqual([{ key: "x", label: "X", required: true }]);
   });
 });
 
-describe("tablas de TipTap", () => {
-  it("conserva la tabla y sus celdas; quita colgroup y min-width", () => {
-    const tiptap =
-      `<table style="min-width: 50px;"><colgroup><col style="min-width: 25px;"><col style="min-width: 25px;"></colgroup>` +
-      `<tbody><tr><th colspan="1" rowspan="1"><p>Cuota</p></th><td colspan="1" rowspan="1"><p>${chip("fecha")}</p></td></tr></tbody></table>`;
-    expect(sanitizeTemplateHtml(tiptap)).toBe(
-      `<table><tbody><tr><th colspan="1" rowspan="1"><p>Cuota</p></th>` +
-        `<td colspan="1" rowspan="1"><p>${chip("fecha")}</p></td></tr></tbody></table>`,
-    );
+describe("Handlebars inválido", () => {
+  it("422 con el mensaje del parser", async () => {
+    const r = await list.POST(req("POST", { name: "X", html: "{{#if a}}sin cerrar", variables: [] }));
+    expect(r.status).toBe(422);
+    expect((await r.json()).detail).toContain("Handlebars");
   });
 });

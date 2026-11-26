@@ -3,7 +3,7 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
 - `api/`: Next.js (route handlers) + TypeScript, Docker + Postgres. Se puede modificar directamente.
 - `web/`: Vite + React + TypeScript + TanStack Query. Consume la API.
 - Dominio: **generador de documentos desde plantillas**.
-  1. Editor WYSIWYG (TipTap) para crear plantillas HTML con comodines `{{variable_key}}`.
+  1. Editor de diseño (iframe editable + código) para crear plantillas HTML con comodines `{{variable_key}}`.
   2. Formulario dinámico generado a partir de los comodines usados en la plantilla guardada.
   3. API que reemplaza los comodines de forma segura y genera el PDF con Playwright (Base64).
 
@@ -14,9 +14,11 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
 - Claves de variable tal cual (`tipo-poliza`): letras, números, `_` y `-`. Nunca renombrar.
 - Comodín = `{{clave}}` de Handlebars en el HTML (ya no `<span data-variable>`). Listas: `{{#each}}`.
 - Variable = `{ key, label, required }`. Sin tipo: el valor se inserta tal cual (escapado por Handlebars).
-- ⚠️ La API (paso 1) aún sanea con allowlist estricta y espera `<span data-variable>`: en el paso 4 hay que
-  adaptarla (guardar HTML con `<style>`/class/style, quitar solo script/on*/URLs externas; variables
-  detectadas con el AST de Handlebars en el servidor). PUT = reemplazo completo.
+- API: saneado QUIRÚRGICO (htmlparser2): corta solo script/iframe/link/meta http-equiv/on*/javascript:;
+  el resto del documento queda byte a byte. Variables con el AST de Handlebars en el servidor
+  (inválido -> 422). PUT = reemplazo completo.
+- Dev local: API `:3010` (`api/.env` -> Postgres `:55432`), web `VITE_API_URL` en `web/.env.local`.
+  Tipos: `npm run gen:api` (web).
 - PDF: escapar valores, Playwright sin JS ni red, timeout, navegador reutilizado.
 
 # Plan
@@ -26,7 +28,7 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
 - [x] Paso 3: nodo Variable + panel para insertar comodines
 - [x] Paso 3d: modo HTML con visor fiel (iframe) + Handlebars
 - [x] Paso 3e: un solo editor Diseño/Código sincronizados (TipTap retirado)
-- [ ] Paso 4 (pendiente en API: guardar modo, permitir <style>/class/style en modo HTML, data: imágenes): guardar/cargar plantillas (useQuery/useMutation, cambios sin guardar)
+- [x] Paso 4: guardar/cargar plantillas (useQuery/useMutation, cambios sin guardar, saneado quirúrgico)
 - [ ] Paso 5: formulario dinámico (React Hook Form + Zod generado en runtime)
 - [ ] Paso 6: render seguro + Playwright -> PDF Base64 + vista previa
 - [ ] Paso 7: extras (preview en vivo, cancelación, descarga)

@@ -1,15 +1,11 @@
-// Mismo contrato que la API (api/src/lib/schemas.ts). En el paso 4 los
-// generaremos desde /api/openapi.json.
+// Tipos del dominio. El contrato con la API se GENERA (src/api/schema.d.ts, npm run gen:api).
+import type { components } from '../../api/schema'
 
 /**
  * Comodín: SIN tipo. Lo que llegue (de un formulario o de una BD) se inserta tal cual.
  * `required` decide si el formulario lo exige o puede quedar vacío.
  */
-export type TemplateVariable = {
-  key: string
-  label: string
-  required: boolean
-}
+export type TemplateVariable = components['schemas']['TemplateVariable']
 
 // Igual que la regex de la API: empieza por letra; letras, números, "_" y "-"; máx. 50.
 // Se aceptan guiones y mayúsculas porque las claves deben coincidir EXACTAMENTE con los
