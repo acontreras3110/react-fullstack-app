@@ -17,9 +17,9 @@ const contrato = {
   name: "Contrato",
   html: `<h1>Contrato</h1><p>Cliente: ${chip("cliente_nombre")}, fecha ${chip("fecha")}. Otra vez ${chip("cliente_nombre")}</p>`,
   variables: [
-    { key: "cliente_nombre", label: "Nombre del cliente", type: "text" },
-    { key: "fecha", label: "Fecha", type: "date" },
-    { key: "no_usada", label: "No usada", type: "number" },
+    { key: "cliente_nombre", label: "Nombre del cliente", required: true },
+    { key: "fecha", label: "Fecha", required: false },
+    { key: "no_usada", label: "No usada", required: true },
   ],
 };
 
@@ -59,7 +59,7 @@ describe("CRUD /api/templates", () => {
     expect(put.status).toBe(200);
     const updated = await put.json();
     expect(updated.name).toBe("Contrato v2");
-    expect(updated.variables).toEqual([{ key: "fecha", label: "Fecha", type: "date" }]);
+    expect(updated.variables).toEqual([{ key: "fecha", label: "Fecha", required: false }]);
 
     expect((await byId.DELETE(req("DELETE"), ctx(t.id))).status).toBe(204);
     expect((await byId.GET(req("GET"), ctx(t.id))).status).toBe(404);
@@ -71,7 +71,7 @@ describe("CRUD /api/templates", () => {
     expect(missing.status).toBe(422);
     expect((await missing.json()).detail).toContain("sin_def");
 
-    const v = { key: "a", label: "A", type: "text" };
+    const v = { key: "a", label: "A", required: true };
     expect((await list.POST(req("POST", { name: "X", html: "", variables: [v, v] }))).status).toBe(422);
     expect((await list.POST(req("POST", { name: "X", html: "", variables: [{ ...v, key: "Mal-Key" }] }))).status).toBe(422);
     expect((await list.POST(req("POST", { name: "  ", html: "" }))).status).toBe(422);
@@ -81,5 +81,26 @@ describe("CRUD /api/templates", () => {
     expect((await byId.GET(req("GET"), ctx("abc"))).status).toBe(404);
     expect((await byId.PUT(req("PUT", { name: "X", html: "" }), ctx(9999))).status).toBe(404);
     expect(Object.keys(buildOpenApi().paths)).toEqual(["/api/templates", "/api/templates/{id}"]);
+  });
+});
+
+describe("required", () => {
+  it("por defecto es obligatoria si no se indica", async () => {
+    const r = await list.POST(
+      req("POST", { name: "R", html: `<p>${chip("x")}</p>`, variables: [{ key: "x", label: "X" }] }),
+    );
+    expect((await r.json()).variables).toEqual([{ key: "x", label: "X", required: true }]);
+  });
+});
+
+describe("tablas de TipTap", () => {
+  it("conserva la tabla y sus celdas; quita colgroup y min-width", () => {
+    const tiptap =
+      `<table style="min-width: 50px;"><colgroup><col style="min-width: 25px;"><col style="min-width: 25px;"></colgroup>` +
+      `<tbody><tr><th colspan="1" rowspan="1"><p>Cuota</p></th><td colspan="1" rowspan="1"><p>${chip("fecha")}</p></td></tr></tbody></table>`;
+    expect(sanitizeTemplateHtml(tiptap)).toBe(
+      `<table><tbody><tr><th colspan="1" rowspan="1"><p>Cuota</p></th>` +
+        `<td colspan="1" rowspan="1"><p>${chip("fecha")}</p></td></tr></tbody></table>`,
+    );
   });
 });

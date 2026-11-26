@@ -37,7 +37,7 @@ Puertos ocupados: `DB_PORT=55432 API_PORT=3010 docker compose up --build`.
 | GET | `/api/openapi.json` | Especificación OpenAPI |
 
 - Comodín en el HTML: `<span data-variable="cliente_nombre">{{cliente_nombre}}</span>`.
-- Variable: `{ key, label, type: "text" | "number" | "date" }`; `key` en snake_case.
+- Variable: `{ key, label, required }` (`required` por defecto `true`); `key` en snake_case. Sin tipo: el valor se inserta tal cual.
 - El HTML se sanea al guardar (sin `<script>`, `on*`, enlaces...). Solo se guardan las variables usadas;
   un comodín sin definir da 422. Errores: `{ detail }`.
 

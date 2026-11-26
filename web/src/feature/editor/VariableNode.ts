@@ -9,7 +9,7 @@
 //
 // En HTML se guarda así (lo que espera la API):
 //   <span data-variable="cliente_nombre">{{cliente_nombre}}</span>
-import { mergeAttributes, Node } from '@tiptap/core'
+import { mergeAttributes, Node, nodeInputRule } from '@tiptap/core'
 
 // Module augmentation: le enseñamos a TypeScript el comando nuevo, para que
 // editor.chain().insertVariable('x') esté tipado y autocompletado.
@@ -53,6 +53,19 @@ export const VariableNode = Node.create({
   // nodo -> texto plano (copiar/pegar como texto, editor.getText()).
   renderText({ node }) {
     return `{{${node.attrs.key}}}`
+  },
+
+  // Input rule: al ESCRIBIR "{{cliente_nombre}}" (al cerrar las llaves) el texto se
+  // sustituye por el nodo. Así también se crean comodines sin usar el panel.
+  // (Si la clave no está definida, el panel avisa: "Comodines sin definir".)
+  addInputRules() {
+    return [
+      nodeInputRule({
+        find: /\{\{([a-z][a-z0-9_]{0,49})\}\}$/,
+        type: this.type,
+        getAttributes: (match) => ({ key: match[1] }),
+      }),
+    ]
   },
 
   addCommands() {

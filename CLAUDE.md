@@ -9,7 +9,8 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
 
 # Decisiones de diseño
 - Comodín = nodo atómico de TipTap, serializado como `<span data-variable="key">{{key}}</span>`.
-- Variable = `{ key (snake_case), label, type: text|number|date }`.
+- Variable = `{ key (snake_case), label, required }`. Sin tipo: el valor se inserta tal cual (escapado).
+- Comodines desde texto `{{clave}}`: importar HTML, pegar (transformPastedHTML) o escribir (input rule).
 - La API sanea el HTML al guardar (allowlist, sanitize-html), guarda solo las variables usadas
   y responde 422 si hay un comodín sin definir. PUT = reemplazo completo (html + variables juntos).
 - PDF: escapar valores, Playwright sin JS ni red, timeout, navegador reutilizado.

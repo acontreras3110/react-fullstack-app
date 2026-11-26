@@ -1,9 +1,10 @@
 import { integer, jsonb, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
-export type VariableType = "text" | "number" | "date";
-
-/** Comodín de la plantilla: `{{key}}` en el documento + datos para generar el formulario. */
-export type TemplateVariable = { key: string; label: string; type: VariableType };
+/**
+ * Comodín de la plantilla: `{{key}}` en el documento. Sin tipo: el valor que llegue se
+ * inserta tal cual (como texto escapado). `required` decide si el formulario lo exige.
+ */
+export type TemplateVariable = { key: string; label: string; required: boolean };
 
 const ts = (name: string) => timestamp(name, { withTimezone: true, mode: "date" });
 

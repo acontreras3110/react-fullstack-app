@@ -271,3 +271,110 @@ main {
 .variable-form p {
   margin: 0;
 }
+
+/* ---------- Obligatoria / opcional ---------- */
+.variable-required {
+  width: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.variable-required[aria-pressed='true'] {
+  color: #e5484d;
+  border-color: #e5484d;
+}
+
+.legend {
+  margin: -6px 0 12px;
+  font-size: 0.75rem;
+}
+
+.checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 6px !important;
+}
+
+/* ---------- Aviso de comodines sin definir ---------- */
+.warning {
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid #f5a524;
+  border-radius: 8px;
+  background: #f5a52422;
+  font-size: 0.82rem;
+}
+
+.warning p {
+  margin: 0 0 6px;
+  word-break: break-word;
+}
+
+/* ---------- Importar HTML ---------- */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.import-dialog {
+  width: min(720px, 90vw);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.import-dialog::backdrop {
+  background: #0008;
+}
+
+.import-dialog h2 {
+  margin-top: 0;
+}
+
+.import-dialog textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ---------- Tablas en el editor ---------- */
+.editor-content .tiptap table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+}
+
+.editor-content .tiptap th,
+.editor-content .tiptap td {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  vertical-align: top;
+}
+
+.editor-content .tiptap th {
+  background: var(--panel);
+}
+
+.editor-content .tiptap td p,
+.editor-content .tiptap th p {
+  margin: 0;
+}
+
+/* Celdas seleccionadas (arrastrando sobre varias). */
+.editor-content .tiptap .selectedCell {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}

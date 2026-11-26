@@ -1,31 +1,36 @@
-// Panel lateral: definir variables e insertarlas en el editor.
+// Panel lateral: definir variables (comodines) e insertarlas en el editor.
 //
 // Reparto del estado (¿dónde vive cada cosa?):
 //   - Lista de variables (`variables`)   -> en App: la necesitan el panel Y la vista de
 //                                           "datos a guardar". Llega por props.
 //   - Qué variables se usan (`usedKeys`) -> DERIVADO del documento del editor (App).
 //   - Lo que escribes en el formulario   -> LOCAL aquí (a nadie más le importa).
-// El panel no modifica nada de App directamente: AVISA con callbacks (onAdd/onRemove/onInsert).
+// El panel no modifica nada de App directamente: AVISA con callbacks (onAdd/onRemove/...).
+//
+// Los comodines NO tienen tipo: el valor que llegue se inserta tal cual. Solo se
+// marca si es OBLIGATORIO (el formulario lo exigirá) u OPCIONAL (puede quedar vacío).
 import { useState, type FormEvent } from 'react'
-import {
-  keyFromLabel,
-  VARIABLE_KEY_REGEX,
-  VARIABLE_TYPE_LABELS,
-  type TemplateVariable,
-  type VariableType,
-} from '../template/types'
+import { keyFromLabel, labelFromKey, VARIABLE_KEY_REGEX, type TemplateVariable } from '../template/types'
 
 type VariablePanelProps = {
   variables: TemplateVariable[]
   usedKeys: string[]
-  onAdd: (variable: TemplateVariable) => void
+  onAdd: (variables: TemplateVariable[]) => void // array: "definir todas" añade varias de golpe
   onRemove: (key: string) => void
   onInsert: (key: string) => void
+  onToggleRequired: (key: string) => void
 }
 
-export function VariablePanel({ variables, usedKeys, onAdd, onRemove, onInsert }: VariablePanelProps) {
+export function VariablePanel({
+  variables,
+  usedKeys,
+  onAdd,
+  onRemove,
+  onInsert,
+  onToggleRequired,
+}: VariablePanelProps) {
   const [label, setLabel] = useState('')
-  const [type, setType] = useState<VariableType>('text')
+  const [required, setRequired] = useState(true)
   // Texto del buscador: estado LOCAL (solo afecta a lo que muestra este panel).
   const [query, setQuery] = useState('')
 
@@ -36,8 +41,11 @@ export function VariablePanel({ variables, usedKeys, onAdd, onRemove, onInsert }
     q === '' ? variables : variables.filter((v) => v.label.toLowerCase().includes(q) || v.key.includes(q))
   const usedCount = variables.filter((v) => usedKeys.includes(v.key)).length
 
+  // DERIVADO: comodines que están en el documento pero no definidos (aparecen al
+  // escribir {{algo}} o pegar HTML con comodines). La API rechazaría guardar así (422).
+  const undefinedKeys = usedKeys.filter((k) => !variables.some((v) => v.key === k))
+
   // ✅ ESTADO DERIVADO: la clave sale de la etiqueta en cada render.
-  // ❌ Guardarla en otro useState obligaría a sincronizarlos a mano (y se desincronizan).
   const key = keyFromLabel(label)
 
   // La validación también es derivada: no hay un useState(error).
@@ -52,9 +60,13 @@ export function VariablePanel({ variables, usedKeys, onAdd, onRemove, onInsert }
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!canAdd) return
-    onAdd({ key, label: label.trim(), type })
+    onAdd([{ key, label: label.trim(), required }])
     setLabel('') // limpiar el formulario tras añadir
-    setType('text')
+    setRequired(true)
+  }
+
+  function handleDefineMissing() {
+    onAdd(undefinedKeys.map((k) => ({ key: k, label: labelFromKey(k), required: true })))
   }
 
   return (
@@ -65,6 +77,20 @@ export function VariablePanel({ variables, usedKeys, onAdd, onRemove, onInsert }
           ({usedCount}/{variables.length} en uso)
         </span>
       </h2>
+
+      {undefinedKeys.length > 0 && (
+        <div className="warning">
+          <p>
+            ⚠️ Comodines sin definir:{' '}
+            {undefinedKeys.map((k) => (
+              <code key={k}>{`{{${k}}} `}</code>
+            ))}
+          </p>
+          <button type="button" onClick={handleDefineMissing}>
+            Definirlos ({undefinedKeys.length})
+          </button>
+        </div>
+      )}
 
       <input
         type="search"
@@ -91,7 +117,7 @@ export function VariablePanel({ variables, usedKeys, onAdd, onRemove, onInsert }
                 type="button"
                 className="variable-insert"
                 onClick={() => onInsert(v.key)}
-                title={`Insertar {{${v.key}}} · ${VARIABLE_TYPE_LABELS[v.type]}${used ? ' · en uso' : ''}`}
+                title={`Insertar {{${v.key}}}${used ? ' · en uso' : ''}`}
               >
                 <span className="variable-label">
                   {used && '✅ '}
@@ -99,22 +125,33 @@ export function VariablePanel({ variables, usedKeys, onAdd, onRemove, onInsert }
                 </span>
                 <code className="variable-key">{`{{${v.key}}}`}</code>
               </button>
-                {/* No dejamos borrar una variable en uso: el documento quedaría con un
-                    comodín sin definir (la API respondería 422). */}
-                <button
-                  type="button"
-                  className="variable-remove"
-                  onClick={() => onRemove(v.key)}
-                  disabled={used}
-                  title={used ? 'Quítala primero del documento' : 'Eliminar variable'}
-                  aria-label={`Eliminar ${v.label}`}
-                >
-                  ✕
-                </button>
+              {/* Interruptor obligatoria/opcional: aria-pressed = estado on/off. */}
+              <button
+                type="button"
+                className="variable-required"
+                aria-pressed={v.required}
+                onClick={() => onToggleRequired(v.key)}
+                title={v.required ? 'Obligatoria (clic: opcional)' : 'Opcional (clic: obligatoria)'}
+              >
+                {v.required ? '*' : '○'}
+              </button>
+              {/* No dejamos borrar una variable en uso: el documento quedaría con un
+                  comodín sin definir (la API respondería 422). */}
+              <button
+                type="button"
+                className="variable-remove"
+                onClick={() => onRemove(v.key)}
+                disabled={used}
+                title={used ? 'Quítala primero del documento' : 'Eliminar variable'}
+                aria-label={`Eliminar ${v.label}`}
+              >
+                ✕
+              </button>
             </li>
           )
         })}
       </ul>
+      <p className="muted legend">* obligatoria · ○ opcional</p>
 
       <form className="variable-form" onSubmit={handleSubmit}>
         <h3>Nueva variable</h3>
@@ -126,16 +163,10 @@ export function VariablePanel({ variables, usedKeys, onAdd, onRemove, onInsert }
             placeholder="Nombre del cliente"
           />
         </label>
-        <label>
-          Tipo
-          {/* Cast seguro: las <option> solo tienen valores de VariableType. */}
-          <select value={type} onChange={(e) => setType(e.target.value as VariableType)}>
-            {Object.entries(VARIABLE_TYPE_LABELS).map(([value, text]) => (
-              <option key={value} value={value}>
-                {text}
-              </option>
-            ))}
-          </select>
+        {/* Checkbox CONTROLADO: `checked` sale del estado, onChange lo actualiza. */}
+        <label className="checkbox">
+          <input type="checkbox" checked={required} onChange={(e) => setRequired(e.target.checked)} />
+          Obligatoria
         </label>
         <p className="muted">
           Clave: <code>{key ? `{{${key}}}` : '—'}</code>

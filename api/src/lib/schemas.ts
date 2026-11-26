@@ -1,14 +1,12 @@
 import { z } from "zod";
 
-export const VariableType = z.enum(["text", "number", "date"]);
-
 // snake_case: empieza por letra; así `{{key}}` es inequívoco y seguro en un atributo HTML.
 export const VariableKey = z.string().regex(/^[a-z][a-z0-9_]{0,49}$/, "Clave inválida (snake_case, máx. 50)");
 
 export const TemplateVariable = z.object({
   key: VariableKey,
   label: z.string().trim().min(1).max(100),
-  type: VariableType,
+  required: z.boolean().default(true),
 });
 
 export const TemplateInput = z.object({

@@ -5,6 +5,7 @@
 // si el editor produce algo que la API no permite, se perdería al guardar.
 import StarterKit from '@tiptap/starter-kit'
 import TextAlign from '@tiptap/extension-text-align'
+import { TableKit } from '@tiptap/extension-table'
 import { VariableNode } from './VariableNode'
 
 export const editorExtensions = [
@@ -16,6 +17,9 @@ export const editorExtensions = [
   }),
   // text-align: la API solo deja pasar este estilo.
   TextAlign.configure({ types: ['heading', 'paragraph'] }),
+  // Tablas: frecuentes en documentos (contratos, facturas). Sin esta extensión, al
+  // importar un HTML con <table> TipTap las descartaría (no sabe representarlas).
+  TableKit.configure({ table: { resizable: false } }),
   // Nuestro nodo de comodín (paso 3).
   VariableNode,
 ]

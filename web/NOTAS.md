@@ -68,3 +68,27 @@ Retroceso (desaparece entera) y fíjate en "en uso"/"sin usar" y en el JSON de l
   `visibleVariables = variables.filter(...)`. Contador "3/105 en uso", también derivado.
 - Bug encontrado: `keyFromLabel` cortaba a 50 **después** de quitar `_` finales -> la clave
   podía terminar en `_`. Orden correcto: cortar y luego limpiar.
+
+### Paso 3c · Comodines sin tipo (obligatorio/opcional) + importar HTML ✅
+Código: `feature/editor/placeholders.ts`, `ImportHtmlDialog.tsx`, `VariableNode.ts` (input rule),
+`VariablePanel.tsx`, `extensions.ts` (tablas), `App.tsx`. API: `schemas.ts` (`required`).
+
+- **Variable = `{ key, label, required }`**. Sin tipo: el valor que llegue (formulario o BD) se
+  inserta tal cual. `required` (por defecto `true`) decide si el formulario lo exige.
+  Interruptor `*` / `○` por fila -> `onToggleRequired` -> `map` + spread en App.
+- **3 formas de crear comodines desde texto `{{clave}}`**:
+  1. **Importar HTML** (pegar o archivo `.html`): "Reemplazar documento" o "Insertar en el cursor".
+     Los comodines nuevos se definen solos.
+  2. **Pegar** HTML en el editor: `editorProps.transformPastedHTML` (función pura HTML -> HTML).
+  3. **Escribir** `{{clave}}`: *input rule* del nodo (`nodeInputRule`) lo convierte al cerrar `}}`.
+  En 2 y 3 aparece el aviso **"Comodines sin definir"** (derivado: usadas − definidas) con
+  botón "Definirlos". Sin `useEffect`: se define con una acción del usuario.
+- **`convertPlaceholders`** usa `DOMParser` + `TreeWalker` sobre nodos de **texto**.
+  ❌ Regex sobre el string HTML tocaría atributos. Claves normalizadas:
+  `{{ deudorRut }}` -> `deudor_rut`; `{{123}}` se queda como texto.
+- **`<dialog>` nativo + `useRef`**: abrirlo exige llamar a `showModal()` del elemento DOM;
+  la ref da acceso a él (cambiarla no re-renderiza). Leer un archivo es async (`await file.text()`).
+- **Tablas** (`TableKit`): sin la extensión, TipTap descarta `<table>` al importar. Botones de
+  fila/columna solo visibles **dentro** de una tabla (renderizado condicional con `inTable`).
+- Lo que el editor no conoce (script, img, enlaces, estilos) se descarta al importar; la API
+  vuelve a sanear al guardar (defensa en dos capas).

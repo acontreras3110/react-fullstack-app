@@ -29,6 +29,7 @@ export function Toolbar({ editor }: ToolbarProps) {
       alignLeft: editor.isActive({ textAlign: 'left' }),
       alignCenter: editor.isActive({ textAlign: 'center' }),
       alignRight: editor.isActive({ textAlign: 'right' }),
+      inTable: editor.isActive('table'),
       canUndo: editor.can().undo(),
       canRedo: editor.can().redo(),
     }),
@@ -59,6 +60,18 @@ export function Toolbar({ editor }: ToolbarProps) {
       <ToolButton label="Alinear a la izquierda" text="⯇" active={state.alignLeft} onClick={() => c().setTextAlign('left').run()} />
       <ToolButton label="Centrar" text="≡" active={state.alignCenter} onClick={() => c().setTextAlign('center').run()} />
       <ToolButton label="Alinear a la derecha" text="⯈" active={state.alignRight} onClick={() => c().setTextAlign('right').run()} />
+      <span className="toolbar-sep" />
+      <ToolButton label="Insertar tabla 3×3" text="▦ Tabla" onClick={() => c().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} />
+      {/* Botones que solo tienen sentido DENTRO de una tabla: renderizado condicional. */}
+      {state.inTable && (
+        <>
+          <ToolButton label="Añadir fila debajo" text="+ Fila" onClick={() => c().addRowAfter().run()} />
+          <ToolButton label="Añadir columna a la derecha" text="+ Col" onClick={() => c().addColumnAfter().run()} />
+          <ToolButton label="Eliminar fila" text="− Fila" onClick={() => c().deleteRow().run()} />
+          <ToolButton label="Eliminar columna" text="− Col" onClick={() => c().deleteColumn().run()} />
+          <ToolButton label="Eliminar tabla" text="✕ Tabla" onClick={() => c().deleteTable().run()} />
+        </>
+      )}
     </div>
   )
 }
