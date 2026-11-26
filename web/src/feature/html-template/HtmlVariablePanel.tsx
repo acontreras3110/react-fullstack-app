@@ -11,9 +11,16 @@ type HtmlVariablePanelProps = {
   isRequired: (key: string) => boolean
   onToggleRequired: (key: string) => void
   onInsert: (snippet: string) => void
+  insertDisabled?: boolean // en "Vista previa" no hay cursor donde insertar
 }
 
-export function HtmlVariablePanel({ variables, isRequired, onToggleRequired, onInsert }: HtmlVariablePanelProps) {
+export function HtmlVariablePanel({
+  variables,
+  isRequired,
+  onToggleRequired,
+  onInsert,
+  insertDisabled = false,
+}: HtmlVariablePanelProps) {
   const [query, setQuery] = useState('')
   const [newKey, setNewKey] = useState('')
 
@@ -47,6 +54,7 @@ export function HtmlVariablePanel({ variables, isRequired, onToggleRequired, onI
             <button
               type="button"
               className="variable-insert"
+              disabled={insertDisabled}
               onClick={() => onInsert(v.kind === 'value' ? `{{${v.key}}}` : eachSnippet(v.key, v.fields))}
               title="Insertar en el cursor del editor"
             >
@@ -88,7 +96,7 @@ export function HtmlVariablePanel({ variables, isRequired, onToggleRequired, onI
         <h3>Nuevo comodín</h3>
         <input value={newKey} onChange={(e) => setNewKey(e.target.value)} placeholder="numero-poliza" />
         {cleanKey !== '' && !validKey && <p className="error">Letras, números, "_" o "-"; empieza por letra</p>}
-        <button type="submit" disabled={!validKey}>
+        <button type="submit" disabled={!validKey || insertDisabled}>
           Insertar en el cursor
         </button>
       </form>

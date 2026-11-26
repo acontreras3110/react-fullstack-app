@@ -11,24 +11,29 @@ body {
 }
 
 main {
-  max-width: 1200px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 12px 16px;
 }
 
 .error {
   color: #e5484d;
 }
 
-/* ---------- Layout ---------- */
+.muted {
+  opacity: 0.65;
+}
+
+/* ---------- Cabecera ---------- */
 .app-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
 .app-header h1 {
   margin: 0;
+  margin-right: auto;
 }
 
 .api-status {
@@ -36,61 +41,96 @@ main {
   opacity: 0.8;
 }
 
-.workspace {
+/* ---------- Layout: panel | editor ---------- */
+.html-workspace {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 12px;
   align-items: start;
 }
 
-.workspace h2 {
-  font-size: 1rem;
-}
-
-@media (max-width: 1000px) {
-  .workspace {
+@media (max-width: 900px) {
+  .html-workspace {
     grid-template-columns: 1fr;
   }
 }
 
-/* ---------- Editor ---------- */
-.editor {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.toolbar {
+.section-header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 6px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.toolbar button {
-  min-width: 32px;
-  padding: 4px 8px;
-  border: 1px solid transparent;
-  border-radius: 4px;
+.section-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* Pestañas de vista y botones de formato comparten estilo */
+.view-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.view-tabs button,
+.design-format button {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
   background: none;
   color: inherit;
   cursor: pointer;
 }
 
-.toolbar button:hover:not(:disabled) {
-  border-color: var(--border);
-}
-
-.toolbar button[aria-pressed='true'] {
+.view-tabs button[aria-pressed='true'],
+.design-format button[aria-pressed='true'] {
   background: color-mix(in srgb, var(--accent) 30%, transparent);
   border-color: var(--accent);
 }
 
-.toolbar button:disabled {
-  opacity: 0.35;
-  cursor: default;
+.code-error {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+}
+
+/* Paneles: uno solo, o código | diseño en la vista dividida */
+.editor-panes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.editor-panes.split {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.code-pane .cm-editor {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* ---------- Hoja (diseño y vista previa) ---------- */
+.preview-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.design-format {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.design-format button {
+  min-width: 32px;
+  padding: 3px 8px;
 }
 
 .toolbar-sep {
@@ -99,55 +139,32 @@ main {
   background: var(--border);
 }
 
-/* .tiptap = el contentEditable que crea TipTap */
-.editor-content .tiptap {
-  min-height: 360px;
-  padding: 12px 16px;
-  outline: none;
-}
-
-.editor-content .tiptap blockquote {
-  margin-left: 0;
-  padding-left: 12px;
-  border-left: 3px solid var(--border);
-}
-
-/* ---------- Salida HTML ---------- */
-.html-output {
-  margin: 0;
-  padding: 12px;
-  min-height: 360px;
-  background: var(--panel);
-  border: 1px solid var(--border);
+/* La "mesa": gris, con scroll (la hoja puede ser más alta/ancha que el hueco). */
+.preview-desk {
+  height: calc(100vh - 230px);
+  overflow: auto;
+  padding: 16px;
+  background: #5c5f66;
   border-radius: 8px;
-  font-size: 0.8rem;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 75vh; /* también scrolleable: con 100 variables el JSON es largo */
-  overflow-y: auto;
+  box-sizing: border-box;
 }
 
-.muted {
-  opacity: 0.65;
+/* La hoja: ancho carta (8.5in), fondo blanco y sombra de papel. */
+.preview-sheet {
+  width: 8.5in;
+  margin: 0 auto;
+  background: #fff;
+  box-shadow: 0 4px 16px #0006;
 }
 
-/* ---------- Comodín (nodo variable) ---------- */
-.editor-content .tiptap span[data-variable] {
-  padding: 1px 6px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
-  border: 1px solid var(--accent);
-  font-size: 0.9em;
-  white-space: nowrap;
-}
-
-/* Nodo seleccionado (clic sobre el chip): TipTap añade esta clase. */
-.editor-content .tiptap span[data-variable].ProseMirror-selectednode {
-  outline: 2px solid var(--accent);
+.preview-sheet iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: #fff;
 }
 
 /* ---------- Panel de variables ---------- */
-/* El panel se queda fijo al hacer scroll de la página (útil con documentos largos). */
 .variable-panel {
   position: sticky;
   top: 8px;
@@ -155,6 +172,7 @@ main {
 
 .variable-panel h2 {
   font-size: 1rem;
+  margin: 4px 0 8px;
 }
 
 .variable-search {
@@ -164,13 +182,12 @@ main {
   padding: 4px 6px;
 }
 
-/* 🔑 Caja scrolleable: altura máxima + overflow auto. Con muchas variables NO crece
-   la página: aparece una barra de scroll dentro de la caja. */
+/* Caja scrolleable: altura máxima + overflow auto. */
 .variable-list {
   list-style: none;
   margin: 0 0 12px;
   padding: 4px;
-  max-height: 45vh;
+  max-height: 50vh;
   overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -183,17 +200,16 @@ main {
   display: none;
 }
 
-/* Fila compacta: [ etiqueta + clave (clic = insertar) ][ ✕ ] */
 .variable-list li {
   display: flex;
   align-items: stretch;
   gap: 4px;
-  flex-shrink: 0; /* en una columna flex con scroll, que las filas no se aplasten */
+  flex-shrink: 0;
 }
 
 .variable-insert {
   flex: 1;
-  min-width: 0; /* permite que el texto largo se corte con "…" en vez de ensanchar */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -207,12 +223,12 @@ main {
   font-size: 0.82rem;
 }
 
-.variable-insert:hover {
+.variable-insert:hover:not(:disabled) {
   border-color: var(--accent);
 }
 
-.variable-list li.used .variable-insert {
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
+.variable-insert:disabled {
+  cursor: default;
 }
 
 .variable-label,
@@ -228,51 +244,6 @@ main {
   opacity: 0.7;
 }
 
-.variable-remove {
-  width: 28px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: none;
-  color: inherit;
-  cursor: pointer;
-}
-
-.variable-remove:hover:not(:disabled) {
-  border-color: #e5484d;
-  color: #e5484d;
-}
-
-.variable-remove:disabled {
-  opacity: 0.25;
-  cursor: default;
-}
-
-.variable-form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px;
-  background: var(--panel);
-  border-radius: 8px;
-  font-size: 0.85rem;
-}
-
-.variable-form h3 {
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.variable-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.variable-form p {
-  margin: 0;
-}
-
-/* ---------- Obligatoria / opcional ---------- */
 .variable-required {
   width: 28px;
   border: 1px solid var(--border);
@@ -293,34 +264,26 @@ main {
   font-size: 0.75rem;
 }
 
-.checkbox {
-  flex-direction: row !important;
-  align-items: center;
-  gap: 6px !important;
-}
-
-/* ---------- Aviso de comodines sin definir ---------- */
-.warning {
-  margin-bottom: 8px;
+.variable-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 8px;
-  border: 1px solid #f5a524;
+  background: var(--panel);
   border-radius: 8px;
-  background: #f5a52422;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
 }
 
-.warning p {
-  margin: 0 0 6px;
-  word-break: break-word;
+.variable-form h3 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.variable-form p {
+  margin: 0;
 }
 
 /* ---------- Importar HTML ---------- */
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .import-dialog {
   width: min(720px, 90vw);
   border: 1px solid var(--border);
@@ -349,144 +312,4 @@ main {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
-}
-
-/* ---------- Tablas en el editor ---------- */
-.editor-content .tiptap table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 8px 0;
-}
-
-.editor-content .tiptap th,
-.editor-content .tiptap td {
-  border: 1px solid var(--border);
-  padding: 4px 8px;
-  vertical-align: top;
-}
-
-.editor-content .tiptap th {
-  background: var(--panel);
-}
-
-.editor-content .tiptap td p,
-.editor-content .tiptap th p {
-  margin: 0;
-}
-
-/* Celdas seleccionadas (arrastrando sobre varias). */
-.editor-content .tiptap .selectedCell {
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-/* ---------- Modos ---------- */
-main.app-html {
-  max-width: none; /* el modo HTML necesita todo el ancho: código + hoja */
-}
-
-.app-header {
-  gap: 16px;
-  margin-bottom: 8px;
-}
-
-.mode-tabs {
-  display: flex;
-  gap: 4px;
-  margin-right: auto;
-}
-
-.mode-tabs button {
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: none;
-  color: inherit;
-  cursor: pointer;
-}
-
-.mode-tabs button[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--accent) 30%, transparent);
-  border-color: var(--accent);
-}
-
-.payload {
-  margin-top: 12px;
-}
-
-.payload summary {
-  cursor: pointer;
-  margin-bottom: 8px;
-}
-
-/* ---------- Modo HTML ---------- */
-.html-workspace {
-  display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-}
-
-@media (max-width: 1100px) {
-  .html-workspace {
-    grid-template-columns: 1fr;
-  }
-}
-
-.html-workspace h2 {
-  font-size: 1rem;
-  margin: 0;
-}
-
-.code-section .section-header {
-  margin-bottom: 8px;
-}
-
-.code-section .cm-editor {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 12px;
-}
-
-.code-error {
-  margin: 6px 0 0;
-  font-size: 0.85rem;
-}
-
-/* ---------- Visor (hoja de papel) ---------- */
-.preview-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.preview-toolbar label {
-  font-weight: normal;
-}
-
-/* La "mesa": gris, con scroll en ambas direcciones (la hoja puede ser más ancha). */
-.preview-desk {
-  height: calc(100vh - 170px);
-  overflow: auto;
-  padding: 16px;
-  background: #5c5f66;
-  border-radius: 8px;
-  box-sizing: border-box;
-}
-
-/* La hoja: ancho carta (8.5in), fondo blanco y sombra de papel. */
-.preview-sheet {
-  width: 8.5in;
-  margin: 0 auto;
-  background: #fff;
-  box-shadow: 0 4px 16px #0006;
-}
-
-.preview-sheet iframe {
-  display: block;
-  width: 100%;
-  border: 0;
-  background: #fff;
 }

@@ -125,3 +125,41 @@ Código: `src/feature/html-template/` (`analyze.ts`, `preview.ts`, `DocumentPrev
 
 Probado con `condiciones-endoso.html` (108 KB): 40 variables + lista `coberturas` (4 campos),
 59 marcadores, 2 bloques condicionales, se ve como el documento original.
+
+## Paso 3e · Un solo editor: Diseño (sin código) + Código, sincronizados ✅
+Código: `feature/html-template/` (`designDoc.ts`, `DesignEditor.tsx`, `HtmlTemplateWorkspace.tsx`,
+`blankTemplate.ts`). Se retiró TipTap (modo visual) y sus dependencias.
+
+- **Vistas del MISMO `html`**: ✎ Diseño (editar el documento real), </> Código, ◫ Dividido,
+  👁 Vista previa. Fuente de verdad única en el workspace; las vistas lo leen y emiten cambios.
+- **Diseño = iframe editable**: `body.contentEditable = 'true'` + `document.execCommand`
+  (negrita, alinear, deshacer). El CSS original se respeta porque es el documento real.
+- **Proteger Handlebars al editar** (`toDesignHtml` / `fromDesignDocument`):
+  - bloques (`{{#each}}`, `{{/if}}`, `{{else}}`) -> **comentarios** `<!--hb:...-->` (válidos dentro
+    de `<tbody>`; como texto, el parser los sacaría de la tabla: *foster parenting*).
+  - en línea (`{{asegurado}}`) -> **chip** `<span contenteditable="false">` (no se rompe a medias).
+  - El original va codificado (`encodeURIComponent`) -> la vuelta es exacta.
+  - No se tocan etiquetas, atributos, `<style>` ni `<script>` (split por regex con grupo).
+  - Etiquetas visuales de bloques ("↻ Repetir por cada: coberturas") con `data-design-ui`;
+    se quitan al serializar.
+- **Editor NO controlado** (como TipTap): carga una vez; emite con *debounce* (300 ms).
+  `lastEmittedRef` evita recargar el iframe con nuestro propio cambio (el cursor saltaría).
+  Cambios externos (código, importar) -> recarga con retardo de 400 ms
+  (`useEffect` + `setTimeout` + cleanup).
+- **"Latest ref"**: los listeners del iframe se registran una vez; leen `onChangeRef.current`
+  para no usar un `onChange` viejo (stale closure).
+- **`ref` como prop (React 19) + `useImperativeHandle`**: el padre llama
+  `designRef.current.insert('{{x}}')`. `lastFocusedRef` decide en la vista dividida si insertar
+  en código o en diseño.
+- **Bug de Chrome**: `execCommand('insertHTML')` con un chip al final de un párrafo lo saca FUERA
+  del `<p>`. Se inserta con la Range API (`range.insertNode`). Contra: esa inserción no entra
+  en Ctrl+Z (el chip se borra con Retroceso).
+- `instanceof Element` falla con nodos del iframe (cada documento tiene sus constructores):
+  usar `nodeType`.
+- **Limitación**: al guardar desde Diseño el navegador **normaliza** el HTML (`<meta/>` ->
+  `<meta>`, `data-dynamic` -> `data-dynamic=""`, `<tbody>` implícito). Mismo resultado visual.
+  Si solo usas Código, el HTML no se toca.
+
+Probado con `condiciones-endoso.html`: editar texto, negrita, insertar comodín y lista en el
+cursor, sincronización código <-> diseño; los 8 bloques condicionales y el `{{#each}}` dentro de
+`<tbody>` sobreviven a la ida y vuelta.
