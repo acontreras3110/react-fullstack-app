@@ -87,51 +87,104 @@ export function sanitizeTemplateHtml(html: string): string {
 }
 
 /**
- * Claves de comodín usadas (sin repetir, en orden de aparición) con el AST de Handlebars,
- * igual que el front (web/src/feature/html-template/analyze.ts):
- *   {{cliente}}, {{#if monto}}, {{#ifEquals medio-pago 1}} -> variables;
- *   {{#each coberturas}} -> variable (lista); {{this.codigo}} / @index dentro -> no.
- * Lanza 422 si la plantilla no es Handlebars válido ({{#if}} sin cerrar...).
+ * Analiza la plantilla con el AST de Handlebars (igual que web/src/feature/html-template/analyze.ts).
+ * Devuelve, en orden de aparición, cada variable de primer nivel:
+ *   null      -> valor          {{cliente}}, {{#if monto}}, {{#ifEquals medio-pago 1}}
+ *   string[]  -> lista + campos {{#each coberturas}} {{this.codigo}} {{descripcion}} {{/each}}
+ * (@index, @first... y {{this}} solo no son campos.) 422 si no es Handlebars válido.
  */
-export function extractVariableKeys(html: string): string[] {
+export function analyzeVariables(html: string): Map<string, string[] | null> {
   let program: hbs.AST.Program;
   try {
     program = Handlebars.parse(html);
   } catch (e) {
     throw new HttpError(422, `Plantilla Handlebars inválida: ${e instanceof Error ? e.message : String(e)}`);
   }
-  const keys = new Set<string>();
+  const found = new Map<string, string[] | null>();
 
-  const visitExpr = (expr: hbs.AST.Expression, inEach: boolean) => {
+  // `list` = clave de la lista si estamos dentro de su {{#each}}.
+  const visitExpr = (expr: hbs.AST.Expression, list: string | null) => {
     if (expr.type === "SubExpression") {
-      (expr as hbs.AST.SubExpression).params.forEach((p) => visitExpr(p, inEach));
+      (expr as hbs.AST.SubExpression).params.forEach((p) => visitExpr(p, list));
       return;
     }
-    if (expr.type !== "PathExpression" || inEach) return; // dentro de each = campos del elemento
+    if (expr.type !== "PathExpression") return; // literales (1, "x") no son variables
     const path = expr as hbs.AST.PathExpression;
-    if (path.data || path.original === "this" || path.original.startsWith("this.") || path.parts.length === 0) return;
-    keys.add(path.original);
+    if (path.data || path.parts.length === 0) return; // @index, {{this}}
+    if (list) {
+      const fields = found.get(list);
+      const field = path.parts.join("."); // "this.codigo" -> parts ["codigo"]
+      if (fields && !fields.includes(field)) fields.push(field);
+      return;
+    }
+    if (path.original === "this" || path.original.startsWith("this.")) return;
+    if (!found.has(path.original)) found.set(path.original, null);
   };
 
-  const visit = (node: hbs.AST.Node, inEach: boolean) => {
+  const visit = (node: hbs.AST.Node, list: string | null) => {
     if (node.type === "Program") {
-      (node as hbs.AST.Program).body.forEach((n) => visit(n, inEach));
+      (node as hbs.AST.Program).body.forEach((n) => visit(n, list));
     } else if (node.type === "MustacheStatement") {
       const m = node as hbs.AST.MustacheStatement;
-      if (m.params.length === 0) visitExpr(m.path as hbs.AST.Expression, inEach);
-      else m.params.forEach((p) => visitExpr(p, inEach));
+      if (m.params.length === 0) visitExpr(m.path as hbs.AST.Expression, list);
+      else m.params.forEach((p) => visitExpr(p, list)); // {{helper a b}}: el path es el helper
     } else if (node.type === "BlockStatement") {
       const b = node as hbs.AST.BlockStatement;
-      b.params.forEach((p) => visitExpr(p, inEach));
-      const isEach = b.path.original === "each";
-      if (b.program) visit(b.program, inEach || isEach);
-      if (b.inverse) visit(b.inverse, inEach);
+      const first = b.params[0];
+      if (b.path.original === "each" && !list && first?.type === "PathExpression") {
+        const key = (first as hbs.AST.PathExpression).original;
+        if (found.get(key) == null) found.set(key, []); // lista (aunque antes se viera como valor)
+        if (b.program) visit(b.program, key);
+      } else {
+        b.params.forEach((p) => visitExpr(p, list));
+        if (b.program) visit(b.program, list);
+      }
+      if (b.inverse) visit(b.inverse, list); // {{else}}: mismo ámbito de fuera
     }
   };
 
-  visit(program, false);
-  return [...keys];
+  visit(program, null);
+  return found;
 }
+
+/** Claves de primer nivel usadas (sin repetir, en orden de aparición). */
+export const extractVariableKeys = (html: string) => [...analyzeVariables(html).keys()];
+
+export type DataMapping = { [key: string]: string | DataMapping | DataMapping[] };
+
+/** "a.b.c" -> { a: { b: { c: "" } } } (Handlebars resuelve {{a.b.c}} navegando objetos). */
+function setPath(target: DataMapping, path: string) {
+  const parts = path.split(".");
+  let node = target;
+  for (const part of parts.slice(0, -1)) {
+    if (typeof node[part] !== "object" || Array.isArray(node[part])) node[part] = {};
+    node = node[part] as DataMapping;
+  }
+  const last = parts[parts.length - 1]!;
+  if (!(last in node)) node[last] = "";
+}
+
+/**
+ * Molde de datos para rellenar la plantilla: cada clave con "" y cada lista con UN elemento
+ * de ejemplo con sus campos. Se calcula del HTML (no se guarda): nunca se desfasa.
+ *   { "asegurado": "", "coberturas": [{ "codigo": "", "descripcion": "" }] }
+ */
+export function buildDataMapping(html: string): DataMapping {
+  const mapping: DataMapping = {};
+  for (const [key, fields] of analyzeVariables(html)) {
+    if (fields === null) {
+      setPath(mapping, key);
+    } else {
+      const item: DataMapping = {};
+      fields.forEach((f) => setPath(item, f));
+      mapping[key] = fields.length > 0 ? [item] : [];
+    }
+  }
+  return mapping;
+}
+
+/** Respuesta de la API: la fila + su `dataMapping` (derivado del html). */
+export const withDataMapping = <T extends { html: string }>(t: T) => ({ ...t, dataMapping: buildDataMapping(t.html) });
 
 /**
  * Sanea el HTML y cruza los comodines usados con las definiciones recibidas:

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import * as list from "@/app/api/templates/route";
 import * as byId from "@/app/api/templates/[id]/route";
 import { buildOpenApi } from "@/lib/openapi";
-import { extractVariableKeys, sanitizeTemplateHtml } from "@/lib/template";
+import { buildDataMapping, extractVariableKeys, sanitizeTemplateHtml } from "@/lib/template";
 
 const req = (method: string, body?: unknown) =>
   new Request("http://test/api/templates", {
@@ -113,6 +113,33 @@ describe("required", () => {
       req("POST", { name: "R", html: `<p>${hb("x")}</p>`, variables: [{ key: "x", label: "X" }] }),
     );
     expect((await r.json()).variables).toEqual([{ key: "x", label: "X", required: true }]);
+  });
+});
+
+describe("dataMapping", () => {
+  it("valores con \"\", listas con un elemento de ejemplo y rutas con punto anidadas", () => {
+    const html =
+      `{{asegurado}} {{#if monto}}{{monto}}{{/if}} {{#ifEquals medio-pago 1}}x{{/ifEquals}}` +
+      `{{#each coberturas}}{{this.codigo}} {{descripcion}} {{@index}}{{/each}}` +
+      `{{#each vacia}}{{this}}{{/each}} {{cliente.nombre}} {{cliente.rut}}`;
+    expect(buildDataMapping(html)).toEqual({
+      asegurado: "",
+      monto: "",
+      "medio-pago": "",
+      coberturas: [{ codigo: "", descripcion: "" }],
+      vacia: [],
+      cliente: { nombre: "", rut: "" },
+    });
+  });
+
+  it("viene en el detalle, al crear y en el listado (sin html)", async () => {
+    const created = await (await list.POST(req("POST", contrato))).json();
+    const expected = { cliente_nombre: "", fecha: "" };
+    expect(created.dataMapping).toEqual(expected);
+    expect((await (await byId.GET(req("GET"), ctx(created.id))).json()).dataMapping).toEqual(expected);
+    const item = (await (await list.GET()).json()).items.find((i: { id: number }) => i.id === created.id);
+    expect(item.dataMapping).toEqual(expected);
+    expect(item).not.toHaveProperty("html");
   });
 });
 

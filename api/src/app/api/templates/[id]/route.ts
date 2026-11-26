@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { templates } from "@/db/schema";
 import { body, handler, HttpError, json, noContent, parseId } from "@/lib/http";
 import { TemplateInput } from "@/lib/schemas";
-import { prepareTemplate } from "@/lib/template";
+import { prepareTemplate, withDataMapping } from "@/lib/template";
 
 type Ctx = { params: Promise<{ id: string }> };
 const notFound = () => new HttpError(404, "Plantilla no encontrada");
@@ -12,7 +12,7 @@ export const GET = handler(async (_req: Request, { params }: Ctx) => {
   const id = parseId((await params).id);
   const t = await db.query.templates.findFirst({ where: eq(templates.id, id) });
   if (!t) throw notFound();
-  return json(t);
+  return json(withDataMapping(t));
 });
 
 /** PUT = reemplazo completo: html y variables siempre viajan juntos (deben ser coherentes). */
@@ -22,7 +22,7 @@ export const PUT = handler(async (req: Request, { params }: Ctx) => {
   const prepared = prepareTemplate(html, variables);
   const [t] = await db.update(templates).set({ name, ...prepared }).where(eq(templates.id, id)).returning();
   if (!t) throw notFound();
-  return json(t);
+  return json(withDataMapping(t));
 });
 
 export const DELETE = handler(async (_req: Request, { params }: Ctx) => {

@@ -17,6 +17,8 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
 - API: saneado QUIRÚRGICO (htmlparser2): corta solo script/iframe/link/meta http-equiv/on*/javascript:;
   el resto del documento queda byte a byte. Variables con el AST de Handlebars en el servidor
   (inválido -> 422). PUT = reemplazo completo.
+- Respuestas con `dataMapping` (molde `{ clave: "", lista: [{ campo: "" }] }`) DERIVADO del html en
+  cada lectura; `variables` queda para label/required.
 - Dev local: API `:3010` (`api/.env` -> Postgres `:55432`), web `VITE_API_URL` en `web/.env.local`.
   Tipos: `npm run gen:api` (web).
 - PDF: escapar valores, Playwright sin JS ni red, timeout, navegador reutilizado.

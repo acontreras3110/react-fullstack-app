@@ -147,6 +147,16 @@ cd web && npm run gen:api        # regenera src/api/schema.d.ts desde /api/opena
   y URLs `javascript:`; el resto del documento (`<style>`, clases, imágenes `data:`) queda byte a byte.
 - Variables detectadas con el AST de Handlebars: solo se guardan las usadas; una sin definir o una plantilla
   inválida da 422. Errores: `{ detail }`.
+- Cada plantilla (listado y detalle) trae `dataMapping`: el molde de datos para rellenarla, **calculado del HTML**
+  (no se guarda, nunca se desfasa). Valores con `""`, listas con un elemento de ejemplo, `a.b` anidado:
+
+```json
+"dataMapping": {
+  "asegurado": "",
+  "tipo-poliza": "",
+  "coberturas": [{ "codigo": "", "descripcion": "", "monto-asegurado": "", "porcentaje-prima": "" }]
+}
+```
 
 ## Desarrollo de la API
 

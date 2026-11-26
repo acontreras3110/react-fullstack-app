@@ -226,6 +226,22 @@ export interface components {
                 /** @default true */
                 required: boolean;
             }[];
+            /**
+             * @description Molde de datos para rellenar la plantilla: cada variable con "" y cada lista con un elemento de ejemplo
+             * @example {
+             *       "asegurado": "",
+             *       "tipo-poliza": "",
+             *       "coberturas": [
+             *         {
+             *           "codigo": "",
+             *           "descripcion": ""
+             *         }
+             *       ]
+             *     }
+             */
+            dataMapping: {
+                [key: string]: unknown;
+            };
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -240,6 +256,22 @@ export interface components {
                 /** @default true */
                 required: boolean;
             }[];
+            /**
+             * @description Molde de datos para rellenar la plantilla: cada variable con "" y cada lista con un elemento de ejemplo
+             * @example {
+             *       "asegurado": "",
+             *       "tipo-poliza": "",
+             *       "coberturas": [
+             *         {
+             *           "codigo": "",
+             *           "descripcion": ""
+             *         }
+             *       ]
+             *     }
+             */
+            dataMapping: {
+                [key: string]: unknown;
+            };
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -255,6 +287,22 @@ export interface components {
                     /** @default true */
                     required: boolean;
                 }[];
+                /**
+                 * @description Molde de datos para rellenar la plantilla: cada variable con "" y cada lista con un elemento de ejemplo
+                 * @example {
+                 *       "asegurado": "",
+                 *       "tipo-poliza": "",
+                 *       "coberturas": [
+                 *         {
+                 *           "codigo": "",
+                 *           "descripcion": ""
+                 *         }
+                 *       ]
+                 *     }
+                 */
+                dataMapping: {
+                    [key: string]: unknown;
+                };
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */

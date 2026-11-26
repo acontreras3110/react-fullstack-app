@@ -18,11 +18,18 @@ export const TemplateInput = z.object({
   variables: z.array(TemplateVariable).max(200).default([]),
 });
 
+// Molde de datos: { clave: "", lista: [{ campo: "" }] }. Recursivo (a.b -> { a: { b: "" } }).
+export const DataMapping = z.record(z.string(), z.any()).meta({
+  description: "Molde de datos para rellenar la plantilla: cada variable con \"\" y cada lista con un elemento de ejemplo",
+  example: { asegurado: "", "tipo-poliza": "", coberturas: [{ codigo: "", descripcion: "" }] },
+});
+
 export const TemplateOut = z.object({
   id: z.number().int(),
   name: z.string(),
   html: z.string(),
   variables: z.array(TemplateVariable),
+  dataMapping: DataMapping,
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
