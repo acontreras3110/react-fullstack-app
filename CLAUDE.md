@@ -12,10 +12,11 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
   editable, sin código), **Código** (CodeMirror), **Dividido** y **Vista previa**. Handlebars protegido al editar
   (bloques -> comentarios, expresiones -> chips). Variables detectadas con el AST de Handlebars.
 - Claves de variable tal cual (`tipo-poliza`): letras, números, `_` y `-`. Nunca renombrar.
-- Comodín = nodo atómico de TipTap, serializado como `<span data-variable="key">{{key}}</span>`.
-- Variable = `{ key (snake_case), label, required }`. Sin tipo: el valor se inserta tal cual (escapado).
-- La API sanea el HTML al guardar (allowlist, sanitize-html), guarda solo las variables usadas
-  y responde 422 si hay un comodín sin definir. PUT = reemplazo completo (html + variables juntos).
+- Comodín = `{{clave}}` de Handlebars en el HTML (ya no `<span data-variable>`). Listas: `{{#each}}`.
+- Variable = `{ key, label, required }`. Sin tipo: el valor se inserta tal cual (escapado por Handlebars).
+- ⚠️ La API (paso 1) aún sanea con allowlist estricta y espera `<span data-variable>`: en el paso 4 hay que
+  adaptarla (guardar HTML con `<style>`/class/style, quitar solo script/on*/URLs externas; variables
+  detectadas con el AST de Handlebars en el servidor). PUT = reemplazo completo.
 - PDF: escapar valores, Playwright sin JS ni red, timeout, navegador reutilizado.
 
 # Plan
