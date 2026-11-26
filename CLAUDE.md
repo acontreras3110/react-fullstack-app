@@ -17,7 +17,7 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
 # Plan
 - [x] Paso 0: esqueleto monorepo + GitHub
 - [x] Paso 1: API CRUD de plantillas (Drizzle + Postgres + tests PGlite)
-- [ ] Paso 2: editor TipTap básico + toolbar
+- [x] Paso 2: editor TipTap básico + toolbar
 - [ ] Paso 3: nodo Variable + panel para insertar comodines
 - [ ] Paso 4: guardar/cargar plantillas (useQuery/useMutation, cambios sin guardar)
 - [ ] Paso 5: formulario dinámico (React Hook Form + Zod generado en runtime)

@@ -1,6 +1,9 @@
 :root {
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   color-scheme: light dark;
+  --border: #8885;
+  --panel: #8881;
+  --accent: #6b8afd;
 }
 
 body {
@@ -8,11 +11,115 @@ body {
 }
 
 main {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 16px;
 }
 
 .error {
   color: #e5484d;
+}
+
+/* ---------- Layout ---------- */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-header h1 {
+  margin: 0;
+}
+
+.api-status {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+}
+
+.workspace h2 {
+  font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Editor ---------- */
+.editor {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar button {
+  min-width: 32px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.toolbar button:hover:not(:disabled) {
+  border-color: var(--border);
+}
+
+.toolbar button[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  border-color: var(--accent);
+}
+
+.toolbar button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.toolbar-sep {
+  width: 1px;
+  margin: 0 4px;
+  background: var(--border);
+}
+
+/* .tiptap = el contentEditable que crea TipTap */
+.editor-content .tiptap {
+  min-height: 360px;
+  padding: 12px 16px;
+  outline: none;
+}
+
+.editor-content .tiptap blockquote {
+  margin-left: 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--border);
+}
+
+/* ---------- Salida HTML ---------- */
+.html-output {
+  margin: 0;
+  padding: 12px;
+  min-height: 360px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
