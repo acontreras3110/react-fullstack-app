@@ -11,10 +11,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createTemplate,
   deleteTemplate,
+  generatePdf,
   getTemplate,
   listTemplates,
   updateTemplate,
   type Template,
+  type RenderInput,
   type TemplateInput,
 } from './api'
 
@@ -69,5 +71,17 @@ export function useDeleteTemplate() {
       queryClient.removeQueries({ queryKey: templateKeys.detail(id) })
       return queryClient.invalidateQueries({ queryKey: templateKeys.list() })
     },
+  })
+}
+
+/**
+ * Generar PDF: es una MUTACIÓN aunque no cambie datos en el servidor.
+ * useQuery es para LEER algo identificado por una key (se cachea, se refresca solo).
+ * Esto es una ACCIÓN que dispara el usuario con un botón -> useMutation (nada de caché
+ * ni reintentos automáticos: no queremos 3 PDFs por un error).
+ */
+export function useGeneratePdf() {
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: RenderInput['data'] }) => generatePdf(id, data),
   })
 }

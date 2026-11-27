@@ -1,5 +1,6 @@
 import { z } from "zod";
 import * as S from "./schemas";
+import { RenderInput } from "./render";
 
 const schemas = {
   TemplateVariable: S.TemplateVariable,
@@ -8,6 +9,8 @@ const schemas = {
   TemplateSummary: S.TemplateSummary,
   TemplateList: S.TemplateList,
   ApiError: S.ApiError,
+  RenderInput,
+  PdfOut: S.PdfOut,
 };
 type Name = keyof typeof schemas;
 
@@ -44,6 +47,14 @@ export function buildOpenApi() {
           responses: { "200": ok("TemplateOut"), "404": err, "422": err },
         },
         delete: { tags: ["templates"], summary: "Eliminar plantilla", responses: { "204": { description: "Sin contenido" }, "404": err } },
+      },
+      "/api/templates/{id}/pdf": {
+        parameters: [idParam],
+        post: {
+          tags: ["templates"], summary: "Generar PDF (Base64) con los datos del formulario",
+          requestBody: { required: true, content: content("RenderInput") },
+          responses: { "200": ok("PdfOut"), "404": err, "422": err, "504": err },
+        },
       },
     },
   };

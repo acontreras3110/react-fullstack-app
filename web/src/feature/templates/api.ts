@@ -25,3 +25,11 @@ export const updateTemplate = (id: number, input: TemplateInput) =>
   apiFetch<Template>(`/api/templates/${id}`, { method: 'PUT', body: JSON.stringify(input) })
 
 export const deleteTemplate = (id: number) => apiFetch<void>(`/api/templates/${id}`, { method: 'DELETE' })
+
+// ---------- Paso 6: PDF ----------
+export type RenderInput = components['schemas']['RenderInput']
+export type PdfOut = components['schemas']['PdfOut']
+
+/** El servidor rellena la plantilla GUARDADA con `data` y devuelve el PDF en Base64. */
+export const generatePdf = (id: number, data: RenderInput['data']) =>
+  apiFetch<PdfOut>(`/api/templates/${id}/pdf`, { method: 'POST', body: JSON.stringify({ data }) })

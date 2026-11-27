@@ -139,6 +139,7 @@ cd web && npm run gen:api        # regenera src/api/schema.d.ts desde /api/opena
 | GET | `/api/templates/:id` | Obtener una plantilla |
 | PUT | `/api/templates/:id` | Reemplazar `{ name, html, variables }` |
 | DELETE | `/api/templates/:id` | Eliminar |
+| POST | `/api/templates/:id/pdf` | Generar PDF `{ data }` -> `{ filename, pdfBase64 }` (Playwright) |
 | GET | `/api/openapi.json` | Especificación OpenAPI |
 
 - Comodín = expresión Handlebars en el HTML: `{{cliente-nombre}}`, `{{#if x}}`, `{{#each coberturas}}`.

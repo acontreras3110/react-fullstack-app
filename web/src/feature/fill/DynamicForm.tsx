@@ -17,9 +17,11 @@ import { ListField } from './ListField'
 type DynamicFormProps = {
   fields: FormField[]
   onSubmit: (values: FormValues) => void
+  submitLabel?: string
+  submitting?: boolean // el padre está procesando el envío (p. ej. generando el PDF)
 }
 
-export function DynamicForm({ fields, onSubmit }: DynamicFormProps) {
+export function DynamicForm({ fields, onSubmit, submitLabel = 'Enviar', submitting = false }: DynamicFormProps) {
   // useForm lee defaultValues y resolver SOLO al montar. Si la plantilla cambia, el padre
   // pasa otra `key` y este componente se monta de nuevo (mismo truco que el paso 4).
   const {
@@ -67,8 +69,8 @@ export function DynamicForm({ fields, onSubmit }: DynamicFormProps) {
       )}
 
       <div className="form-actions">
-        <button type="submit" className="primary">
-          Validar y ver datos
+        <button type="submit" className="primary" disabled={submitting}>
+          {submitLabel}
         </button>
         <button type="button" onClick={() => reset()}>
           Limpiar

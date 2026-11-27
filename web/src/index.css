@@ -444,3 +444,18 @@ button.primary {
   border: 1px solid var(--border);
   border-radius: 8px;
 }
+
+/* ---------- Visor PDF (paso 6) ---------- */
+.pdf-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pdf-viewer iframe {
+  width: 100%;
+  height: calc(100vh - 150px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+}

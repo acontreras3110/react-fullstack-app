@@ -37,4 +37,6 @@ export const TemplateOut = z.object({
 export const TemplateSummary = TemplateOut.omit({ html: true });
 export const TemplateList = z.object({ items: z.array(TemplateSummary) });
 
+export const PdfOut = z.object({ filename: z.string(), pdfBase64: z.string() });
+
 export const ApiError = z.object({ detail: z.string() });

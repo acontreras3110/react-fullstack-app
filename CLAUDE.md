@@ -21,7 +21,8 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
   cada lectura; `variables` queda para label/required.
 - Dev local: API `:3010` (`api/.env` -> Postgres `:55432`), web `VITE_API_URL` en `web/.env.local`.
   Tipos: `npm run gen:api` (web).
-- PDF: escapar valores, Playwright sin JS ni red, timeout, navegador reutilizado.
+- PDF: escapar valores, re-sanear salida, Playwright sin JS ni red, timeout, navegador reutilizado,
+  máx. 3 simultáneos. Docker runner = imagen oficial de Playwright (misma versión que el npm).
 
 # Plan
 - [x] Paso 0: esqueleto monorepo + GitHub
@@ -32,7 +33,7 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
 - [x] Paso 3e: un solo editor Diseño/Código sincronizados (TipTap retirado)
 - [x] Paso 4: guardar/cargar plantillas (useQuery/useMutation, cambios sin guardar, saneado quirúrgico)
 - [x] Paso 5: formulario dinámico (React Hook Form + Zod generado en runtime, listas con useFieldArray)
-- [ ] Paso 6: render seguro + Playwright -> PDF Base64 + vista previa
+- [x] Paso 6: render seguro + Playwright -> PDF Base64 + visor (POST /api/templates/{id}/pdf)
 - [ ] Paso 7: extras (preview en vivo, cancelación, descarga)
 
 # Reglas de trabajo

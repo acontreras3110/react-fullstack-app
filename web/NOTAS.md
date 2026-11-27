@@ -237,3 +237,39 @@ Probado con `condiciones-endoso.html`: 40 campos (`seguro` opcional sin `*`) + l
 `coberturas` (4 campos). Enviar vacío -> "39 campo(s) con errores" y foco en `tipo-poliza`;
 fila nueva vacía -> solo esa falla; quitarla -> datos válidos con 40 claves y valores recortados.
 Cambiar a Editor (renombrar -> "● Sin guardar") y volver: formulario y editor conservan su estado.
+
+## Paso 6 · PDF con Playwright (Base64) + visor ✅
+API: `api/src/lib/render.ts`, `api/src/lib/pdf.ts`, `POST /api/templates/{id}/pdf`.
+Web: `feature/fill/PdfViewer.tsx`, `FillTemplate.tsx`, `useGeneratePdf` en `queries.ts`.
+
+**API: render seguro, por capas**
+1. Datos validados con Zod (solo strings / listas de strings, con límites) + obligatorios -> 422.
+2. Handlebars **escapa** `{{x}}`: `<script>` escrito en el formulario sale como texto en el PDF.
+   Instancia aislada (`Handlebars.create()`), helper `ifEquals` (compara como texto).
+3. La salida se **vuelve a sanear** (por si la plantilla usa `{{{x}}}` sin escapar).
+4. Playwright **sin JavaScript** (`javaScriptEnabled: false`) y **sin red** (`page.route` aborta todo).
+- Navegador **reutilizado** (se guarda la PROMESA del arranque: 5 peticiones a la vez esperan al
+  mismo arranque) + **contexto nuevo por petición** cerrado en `finally`.
+- Timeout (504) y **semáforo** de 3 PDFs simultáneos.
+- 1ª petición ~4,6 s (arranca Chromium); siguientes ~0,7 s con `condiciones-endoso.html`.
+- Docker: runner `mcr.microsoft.com/playwright:v1.65.1-noble` (Chromium necesita glibc; Alpine no).
+  La versión de la imagen debe coincidir con la del paquete npm.
+  ⚠️ Probarlo en Docker encontró un bug: el trazado `standalone` de Next no copia
+  `playwright-core/browsers.json` -> 500. Se copian los paquetes `playwright*` completos.
+  En Docker: 1ª petición 1,9 s, siguientes 0,12 s.
+
+**Web**
+- Generar PDF = **`useMutation`**, no `useQuery`: es una acción del usuario, no una lectura
+  cacheable (sin caché ni reintentos automáticos). `isPending` / `isError` / `data`: cero
+  `useState` de loading o error. Si se envía dos veces, gana la ÚLTIMA llamada.
+- **Visor**: Base64 -> `Blob` -> `URL.createObjectURL` -> `<iframe>` + enlace `download`.
+  ❌ `data:application/pdf;base64,...` (Chrome lo bloquea en iframes).
+- **`useEffect` con cleanup** = sincronizar con algo externo (memoria de blobs):
+  crear la URL en el efecto, `revokeObjectURL` en el cleanup (nuevo PDF o desmontaje).
+  oxlint avisa `set-state-in-effect`; aquí es legítimo y está silenciado con explicación:
+  ❌ `useMemo` + revoke en cleanup -> StrictMode revoca la URL que se está mostrando.
+
+Probado: PDF de 3 páginas de `condiciones-endoso.html` (diseño original, firma `data:`, párrafo
+`ifEquals medio-pago 1`, fila de `coberturas`, `<b>` del usuario como texto). En el navegador:
+"Generando PDF…" con botón deshabilitado -> visor; al regenerar la URL vieja queda revocada;
+504 simulado -> mensaje de error. 15 tests de API (incluye PDF real con Playwright).

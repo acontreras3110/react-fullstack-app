@@ -103,7 +103,7 @@ describe("CRUD /api/templates", () => {
   it("404 en ids inválidos y OpenAPI generable", async () => {
     expect((await byId.GET(req("GET"), ctx("abc"))).status).toBe(404);
     expect((await byId.PUT(req("PUT", { name: "X", html: "" }), ctx(9999))).status).toBe(404);
-    expect(Object.keys(buildOpenApi().paths)).toEqual(["/api/templates", "/api/templates/{id}"]);
+    expect(Object.keys(buildOpenApi().paths)).toEqual(["/api/templates", "/api/templates/{id}", "/api/templates/{id}/pdf"]);
   });
 });
 
