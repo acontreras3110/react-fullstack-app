@@ -351,3 +351,96 @@ main {
 button.primary {
   font-weight: 600;
 }
+
+/* ---------- Pestañas de página + formulario dinámico (paso 5) ---------- */
+.page-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.page-tabs button {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px 6px 0 0;
+}
+
+.page-tabs button[aria-pressed='true'] {
+  border-bottom-color: transparent;
+  font-weight: 600;
+  outline: 2px solid var(--accent);
+}
+
+.fill-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .fill-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px 14px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.85rem;
+}
+
+.form-field input {
+  padding: 5px 8px;
+  font-size: 0.95rem;
+}
+
+.form-field input[aria-invalid='true'] {
+  outline: 2px solid #e5484d;
+}
+
+.req {
+  color: #e5484d;
+}
+
+.list-field {
+  margin: 14px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.list-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.fill-result {
+  position: sticky;
+  top: 8px;
+}
+
+.fill-result pre {
+  max-height: calc(100vh - 160px);
+  overflow: auto;
+  font-size: 0.8rem;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}

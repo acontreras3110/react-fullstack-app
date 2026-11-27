@@ -31,7 +31,7 @@ Proyecto de práctica para aplicar lo aprendido en `todo-react` (soy backend: Py
 - [x] Paso 3d: modo HTML con visor fiel (iframe) + Handlebars
 - [x] Paso 3e: un solo editor Diseño/Código sincronizados (TipTap retirado)
 - [x] Paso 4: guardar/cargar plantillas (useQuery/useMutation, cambios sin guardar, saneado quirúrgico)
-- [ ] Paso 5: formulario dinámico (React Hook Form + Zod generado en runtime)
+- [x] Paso 5: formulario dinámico (React Hook Form + Zod generado en runtime, listas con useFieldArray)
 - [ ] Paso 6: render seguro + Playwright -> PDF Base64 + vista previa
 - [ ] Paso 7: extras (preview en vivo, cancelación, descarga)
 

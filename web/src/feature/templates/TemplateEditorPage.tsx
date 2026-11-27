@@ -9,7 +9,13 @@
 //      local vuelve a empezar desde `initial`. Un cambio de key = "es otro componente".
 //
 // `session.n` cambia en cada apertura: así "Nueva" sobre una nueva también reinicia.
+//
+// Paso 5 · Pestañas Editor / Rellenar.
+//   ❌ {tab === 'edit' ? <Editor/> : <Formulario/>}  -> cambiar de pestaña DESMONTA el otro:
+//      se pierden los cambios sin guardar del editor (y lo escrito en el formulario).
+//   ✅ Ambos montados; el inactivo se oculta con el atributo `hidden`. El estado sigue vivo.
 import { useState } from 'react'
+import { FillTemplate } from '../fill/FillTemplate'
 import { HtmlTemplateWorkspace, type TemplateDraft } from '../html-template/HtmlTemplateWorkspace'
 import { BLANK_TEMPLATE } from '../html-template/blankTemplate'
 import { useTemplate } from './queries'
@@ -18,10 +24,14 @@ const NEW_DRAFT: TemplateDraft = { name: '', html: BLANK_TEMPLATE, variables: []
 
 export function TemplateEditorPage() {
   const [session, setSession] = useState<{ id: number | null; n: number }>({ id: null, n: 0 })
+  const [tab, setTab] = useState<'edit' | 'fill'>('edit')
   const template = useTemplate(session.id)
 
-  // Callback estable para los hijos: "abre esta plantilla" (o null = nueva).
-  const open = (id: number | null) => setSession((s) => ({ id, n: s.n + 1 }))
+  // "Abre esta plantilla" (o null = nueva). Siempre vuelve al editor.
+  const open = (id: number | null) => {
+    setSession((s) => ({ id, n: s.n + 1 }))
+    setTab('edit')
+  }
 
   // Estados de la query del detalle. (Con id null la query está deshabilitada: se salta.)
   if (session.id !== null && template.isPending) {
@@ -40,12 +50,38 @@ export function TemplateEditorPage() {
 
   const initial = session.id !== null && template.data ? template.data : NEW_DRAFT
 
+  const saved = session.id !== null ? template.data : undefined
+
   return (
-    <HtmlTemplateWorkspace
-      key={`${session.id ?? 'new'}-${session.n}`}
-      templateId={session.id}
-      initial={initial}
-      onOpen={open}
-    />
+    <>
+      <nav className="page-tabs" aria-label="Modo">
+        <button type="button" aria-pressed={tab === 'edit'} onClick={() => setTab('edit')}>
+          ✎ Editar plantilla
+        </button>
+        <button
+          type="button"
+          aria-pressed={tab === 'fill'}
+          onClick={() => setTab('fill')}
+          disabled={!saved}
+          title={saved ? undefined : 'Guarda la plantilla para poder rellenarla'}
+        >
+          📝 Rellenar formulario
+        </button>
+      </nav>
+
+      <div hidden={tab !== 'edit'}>
+        <HtmlTemplateWorkspace
+          key={`${session.id ?? 'new'}-${session.n}`}
+          templateId={session.id}
+          initial={initial}
+          onOpen={open}
+        />
+      </div>
+      {saved && (
+        <div hidden={tab !== 'fill'}>
+          <FillTemplate key={saved.id} template={saved} />
+        </div>
+      )}
+    </>
   )
 }

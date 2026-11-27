@@ -204,3 +204,36 @@ Probado: crear "Carta de prueba" -> queda abierta con id; subir `condiciones-end
 (40 variables + lista) y abrirla; marcar `seguro` como opcional -> "● Sin guardar" -> Guardar ->
 persistido; `<script>` escrito en Código -> el servidor lo quita, el editor muestra lo guardado y
 queda "✓ Guardado"; Borrar -> vuelve a "Nueva" sin GET 404.
+
+## Paso 5 · Formulario dinámico (React Hook Form + Zod en runtime) ✅
+Código: `feature/fill/` (`formModel.ts`, `DynamicForm.tsx`, `ListField.tsx`, `FillTemplate.tsx`)
+y pestañas en `templates/TemplateEditorPage.tsx`.
+
+- **Todo derivado de la plantilla GUARDADA** (`formModel.ts`, funciones puras):
+  `analyzeTemplate(html)` dice valor o lista (+ campos); `variables` de la API da etiqueta y
+  obligatoria. -> `FormField[]` -> `buildSchema` (Zod) y `buildDefaults` (RHF).
+  ❌ Un esquema escrito a mano por plantilla. ✅ Esquema construido en runtime desde metadata.
+- **React Hook Form = inputs NO controlados**: `register(name)` guarda una ref al `<input>`;
+  escribir no re-renderiza el formulario. ❌ 40 `useState` -> 40 campos re-renderizados por tecla.
+- **zodResolver**: `handleSubmit(fn)` valida y solo llama a `fn` con datos válidos y ya
+  parseados (`.trim()` aplicado). `mode: 'onTouched'`: valida al salir del campo y luego en
+  cada tecla. Al fallar, foco en el primer campo con error.
+- **Listas (`{{#each}}`) con `useFieldArray`** en un componente por lista: ❌ hooks dentro de un
+  `.map()` (el número de hooks cambiaría entre renders). `key={row.id}` (id estable de RHF),
+  ❌ `key={index}`. Nombres con ruta: `coberturas.0.codigo` -> `data.coberturas[0].codigo`.
+- **Esquema dinámico y TypeScript**: el tipo del esquema no se conoce al compilar ->
+  `FormValues = Record<string, string | ListRow[]>` y `as Resolver<FormValues>`.
+- **`key` para regenerar**: `useForm` lee `defaultValues`/`resolver` solo al montar;
+  `key={template.updatedAt}` -> al guardar una versión nueva, formulario nuevo.
+- **Pestañas sin perder estado**: ❌ `{tab === 'edit' ? <Editor/> : <Form/>}` desmonta el otro.
+  ✅ Ambos montados; el inactivo con `hidden`.
+- Limitación: campos de lista con punto (`{{this.cliente.nombre}}`) se anidarían en RHF; el
+  esquema los trata planos.
+
+Curiosidad al probar por JS: asignar `input.value = x` NO dispara el `onChange` de React (su
+"value tracker" cree que no cambió). Hay que usar el setter nativo del prototipo + evento `input`.
+
+Probado con `condiciones-endoso.html`: 40 campos (`seguro` opcional sin `*`) + lista
+`coberturas` (4 campos). Enviar vacío -> "39 campo(s) con errores" y foco en `tipo-poliza`;
+fila nueva vacía -> solo esa falla; quitarla -> datos válidos con 40 claves y valores recortados.
+Cambiar a Editor (renombrar -> "● Sin guardar") y volver: formulario y editor conservan su estado.
